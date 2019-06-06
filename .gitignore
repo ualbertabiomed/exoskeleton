@@ -30,3 +30,11 @@
 *.exe
 *.out
 *.app
+bin/bootstrap
+
+# Folders
+build/
+bin/
+lib/
+include/gmock/
+include/gtest/
