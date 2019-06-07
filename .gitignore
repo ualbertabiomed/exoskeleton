@@ -32,6 +32,13 @@
 *.app
 bin/bootstrap
 
+# Visual Studio
+*.suo
+*.db
+*.opendb
+*.json
+*.sqlite
+
 # Folders
 build/
 bin/
