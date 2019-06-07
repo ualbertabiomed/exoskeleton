@@ -36,5 +36,6 @@ bin/bootstrap
 build/
 bin/
 lib/
+doc/
 include/gmock/
 include/gtest/

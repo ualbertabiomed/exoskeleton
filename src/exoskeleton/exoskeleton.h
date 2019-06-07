@@ -1,9 +1,18 @@
-//
-// Created by Konstantin Gredeskoul on 5/14/17.
-//
+/*
+ * Copyright (c) 2019 UAlbertaBiomed Exoskeleton. All rights reserved.
+ *
+ * This software may be modified and distributed
+ * under the terms of the BSD 3-Clause license.
+ *
+ * Refer to the LICENSE file for details.
+ *
+ * Author: Laura Petrich
+ * Created on: June 6, 2019
+ *
+ */
 
-#ifndef CMAKE_EXOSKELETON_H
-#define CMAKE_EXOSKELETON_H
+#ifndef EXOSKELETON_H
+#define EXOSKELETON_H
 
 static const char *const DIVISION_BY_ZERO_MESSAGE = "Division by zero is illegal";
 
@@ -14,39 +23,39 @@ using namespace std;
 
 class DivisionByZero : public exception {
 public:
-  virtual const char *what() const throw() {
-    return DIVISION_BY_ZERO_MESSAGE;
-  }
+	virtual const char *what() const throw() {
+		return DIVISION_BY_ZERO_MESSAGE;
+	}
 };
 
 struct Fraction {
-  long long numerator;
-  long long denominator;
+	long long numerator;
+	long long denominator;
 };
 
-struct ExoskeletonResult {
-  long long division;
-  long long remainder;
+struct PIDResult {
+	long long division;
+	long long remainder;
 
-  friend bool operator==(const ExoskeletonResult &lhs, const ExoskeletonResult &rhs) {
-    return lhs.division == rhs.division ? lhs.remainder < rhs.remainder : lhs.division < rhs.division;
-  }
+	friend bool operator==(const PIDResult &lhs, const PIDResult &rhs) {
+		return lhs.division == rhs.division ? lhs.remainder < rhs.remainder : lhs.division < rhs.division;
+	}
 };
 
 class Exoskeleton {
 public:
-  explicit Exoskeleton(Fraction fraction) {
-    this->fraction = fraction;
-  }
+	explicit Exoskeleton(Fraction fraction) {
+		this->fraction = fraction;
+	}
 
-  ~Exoskeleton() {
-  };
+	~Exoskeleton() {
+	};
 
-  ExoskeletonResult pid();
+	PIDResult pid();
 
 protected:
-  Fraction       fraction;
-  ExoskeletonResult result;
+	Fraction fraction;
+	PIDResult result;
 };
 
-#endif //CMAKE_EXOSKELETON_H
+#endif // EXOSKELETON_H
