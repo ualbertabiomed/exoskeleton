@@ -38,6 +38,7 @@ bin/bootstrap
 *.opendb
 *.json
 *.sqlite
+*.vs
 
 # Folders
 build/
