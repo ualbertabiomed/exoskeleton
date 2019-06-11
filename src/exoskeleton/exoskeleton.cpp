@@ -13,18 +13,48 @@
 
 #include "exoskeleton.h"
 
+ /**************************************************************************
+  * Connect to arduino and motors
+  **************************************************************************/
+void Exoskeleton::init() {
+	cout << "Initializing exoskeleton..." << endl;
+	return;
+}
+
 /**************************************************************************
- *
  * Calculate PID output
- *
  **************************************************************************/
-PIDResult Exoskeleton::pid() {
-	if (fraction.denominator == 0L) throw DivisionByZero();
-
-	PIDResult result = PIDResult{
-		fraction.numerator / fraction.denominator, 
-		fraction.numerator % fraction.denominator
-	};
-
+double Exoskeleton::pid() {
+	double result = 0.0;
+	// Remember to check that denominator is not zero, throw this error if it is
+	if (gains.Kp == 0L) throw DivisionByZero();
+	cout << "Calculating PID..." << endl;
 	return result;
+}
+
+/**************************************************************************
+ * Calculate target set point to move to
+ **************************************************************************/
+double Exoskeleton::set_point() {
+	double sp = 0.0;
+	cout << "Finding new set point..." << endl;
+	return sp;
+}
+/**************************************************************************
+ * Main loop after connected, call pid from here
+ **************************************************************************/
+void Exoskeleton::loop() {
+	bool shutdown = false;
+	while (!shutdown) {
+		string s;
+		cout << "Looooooooop\nDo you want to continue? >>" << endl;
+		this_thread::sleep_for(std::chrono::milliseconds(500));
+		// getline will wait for the user to enter info and press enter
+		getline(cin, s);
+		if (tolower(s[0]) == 'n') {
+			shutdown = true;
+			cout << "See you later alligator!" << endl;
+		}
+	}
+	return;
 }

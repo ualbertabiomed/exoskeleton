@@ -1,20 +1,16 @@
-cmake_minimum_required(VERSION 3.2)
-
-set(CMAKE_CXX_STANDARD 11)
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -O3")
+cmake_minimum_required (VERSION 3.8)
 
 set(CMAKE_INSTALL_PREFIX ${PROJECT_SOURCE_DIR})
-
-set(EXOSKELETON_INSTALL_INCLUDE_DIR ${PROJECT_SOURCE_DIR}/include)
+set(EXOSKELETON_INSTALL_INCLUDE_DIR ${PROJECT_SOURCE_DIR}/include/exoskeleton)
 set(EXOSKELETON_INSTALL_BIN_DIR ${PROJECT_SOURCE_DIR}/bin)
 set(EXOSKELETON_INSTALL_LIB_DIR ${PROJECT_SOURCE_DIR}/lib)
 
-set(EXOSKELETON_HEADERS_DIR ${PROJECT_SOURCE_DIR}/src/exoskeleton)
-
 include_directories(${EXOSKELETON_INSTALL_INCLUDE_DIR})
-include_directories(${EXOSKELETON_HEADERS_DIR})
 
 add_subdirectory(src)
-add_subdirectory(test)
 
+add_executable(exo src/main.cpp)
+target_link_libraries(exo exoskeleton)
+install(TARGETS exo DESTINATION ${EXOSKELETON_INSTALL_BIN_DIR})
 
+# TODO: Add tests and install targets if needed.
