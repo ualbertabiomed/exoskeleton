@@ -48,3 +48,4 @@ lib/pkgconfig/
 doc/
 include/gmock/
 include/gtest/
+linux/
