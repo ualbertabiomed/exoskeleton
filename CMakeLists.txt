@@ -8,6 +8,7 @@ set(EXOSKELETON_INSTALL_LIB_DIR ${PROJECT_SOURCE_DIR}/lib)
 include_directories(${EXOSKELETON_INSTALL_INCLUDE_DIR})
 
 add_subdirectory(src)
+# comment
 
 add_executable(exo src/main.cpp)
 target_link_libraries(exo exoskeleton)
