@@ -29,6 +29,7 @@ int main(int argc, const char* argv[]) {
 	try {
 		cout << g.Kp << endl;
 		exo.init();
+		exo.pid();
 		exo.loop();
 	}
 	catch (exception& e) {

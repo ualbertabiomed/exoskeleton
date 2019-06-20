@@ -1,4 +1,4 @@
-/*
+ /*
  * Copyright (c) 2019 UAlbertaBiomed Exoskeleton. All rights reserved.
  *
  * This software may be modified and distributed
@@ -18,6 +18,23 @@
   **************************************************************************/
 void Exoskeleton::init() {
 	cout << "Initializing exoskeleton..." << endl;
+
+	// Establish communication with arduino
+	SerialPort arduino(port);
+	if (arduino.isConnected()) {
+		cout << "Connection Established" << endl;
+	}
+	else {
+		cout << "Error in connecting to arduino\nPress any key to exit" << endl;
+		cin.get();
+		exit(EXIT_SUCCESS);
+	}
+
+	// PWM output is possible on digital I / O pins 3, 5, 6, 9, 10 and 11
+	// Attach the ESC on pin 3
+	ESC.attach(3, 1000, 2000);	// (pin, min pulse width, max pulse width in microseconds) 
+	ESC.write(40);				// 'arming' the ESC; UNSURE OF WHAT VALUE NEEDS TO BE HERE
+	
 	return;
 }
 
@@ -25,10 +42,37 @@ void Exoskeleton::init() {
  * Calculate PID output
  **************************************************************************/
 double Exoskeleton::pid() {
-	double result = 0.0;
+	double result;
+	double target;
+	result = 0.0;
+	target = set_point();
+	double error;
+	double current;
+	//current = Get Current Value TAYLOR;
+	// error = target - current;
+	double P;
+	double I;
+	double D;
+	P = gains.Kp * error;
+	I = gains.Ki;
+
+	D = gains.Kd;
+
+	time_t now = time(0);
+
+	// convert now to string form
+	char* dt = ctime(&now);
+
+	cout << "The local date and time is: " << dt << endl;
+
+	// convert now to tm struct for UTC
+	tm* gmtm = gmtime(&now);
+	dt = asctime(gmtm);
+	cout << "The UTC date and time is:" << dt << endl;
+
 	// Remember to check that denominator is not zero, throw this error if it is
-	if (gains.Kp == 0L) throw DivisionByZero();
-	cout << "Calculating PID..." << endl;
+	//if (gains.Kp == 0L) throw DivisionByZero();
+	//cout << "Calculating PID..." << endl;
 	return result;
 }
 

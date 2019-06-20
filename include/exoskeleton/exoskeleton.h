@@ -19,8 +19,17 @@
 #include <chrono>
 #include <thread>
 #include <string>
+#include <ctime>
+
+#include "SerialPort.h"
+#include "../Servo-1.1.4/src/Servo.h"
 
 using namespace std;
+
+// For serial communication with Arduino
+char output[MAX_DATA_LENGTH];
+char incoming[MAX_DATA_LENGTH];
+char *port = "\\\\.\\COM3";
 
 static const char* const DIVISION_BY_ZERO_MESSAGE = "Division by zero is illegal";
 
@@ -51,6 +60,7 @@ public:
 
 protected:
 	Gains gains;
+	Servo ESC;
 };
 
 #endif // EXOSKELETON_H
