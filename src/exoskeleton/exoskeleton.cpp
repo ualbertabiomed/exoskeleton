@@ -18,6 +18,23 @@
   **************************************************************************/
 void Exoskeleton::init() {
 	cout << "Initializing exoskeleton..." << endl;
+
+	// Establish communication with arduino
+	SerialPort arduino(port);
+	if (arduino.isConnected()) {
+		cout << "Connection Established" << endl;
+	}
+	else {
+		cout << "Error in connecting to arduino\nPress any key to exit" << endl;
+		cin.get();
+		exit(EXIT_SUCCESS);
+	}
+
+	// PWM output is possible on digital I / O pins 3, 5, 6, 9, 10 and 11
+	// Attach the ESC on pin 3
+	ESC.attach(3, 1000, 2000);	// (pin, min pulse width, max pulse width in microseconds) 
+	ESC.write(40);				// 'arming' the ESC; UNSURE OF WHAT VALUE NEEDS TO BE HERE
+	
 	return;
 }
 
