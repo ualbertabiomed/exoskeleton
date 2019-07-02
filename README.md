@@ -1,12 +1,11 @@
 # exoskeleton
-Project Tile: 
-one paragraph of project description goes here
+To design an upper body exoskeleton which would reduce the chance of repetitive strain injury and provide feedback on the users's posture. 
 
 Getting started: 
 These instructions will get you a cope of the project up and running on your local machine for development and testing purposes.
 
 Prerequisties: 
-What thing you need to install the software and how to install them. 
+visual studio; eclipse Photon C/C++IDE
 
 Installing: 
 A step by step series of examples that tell you how to get a development env running. Say what the step will be, and repeat; end with an example of getting some data out of the system or using it for a little demo.
