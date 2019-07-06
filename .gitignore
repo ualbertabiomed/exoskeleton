@@ -42,9 +42,6 @@ bin/bootstrap
 
 # Folders
 build/
-bin/
-lib/cmake/
-lib/pkgconfig/
 doc/
 include/gmock/
 include/gtest/
