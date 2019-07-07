@@ -18,10 +18,6 @@ int main(void)
   // "The problem is that initVariant is in the same module as main.
   // Calling initVariant causes the linker to include all of main.cpp."
 
-#if defined(USBCON)
-  USBDevice.attach();
-#endif
-
   setup();
 
   for (;;) {

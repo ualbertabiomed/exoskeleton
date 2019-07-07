@@ -19,14 +19,14 @@ OBJDIR = ../bin
 
 # Path to the serial port used to send to Arduino
 # will be different depending on the OS
-# MONITOR_PORT = 
+ MONITOR_PORT = /dev/ttyACM*
 
 # Path to the Arduino.mk file 
 ARDMK_DIR = ../setup/Arduino-Makefile
 
 # Path to installed Arduino IDE 
 # This will depend on the OS (refer to sudar README)
-# ARDUINO_DIR = 
+ARDUINO_DIR = /usr/share/arduino/arduino-1.8.9/arduino-1.8.9
 
 # Name for generated target files 
 # TARGET = 
@@ -35,7 +35,7 @@ ARDMK_DIR = ../setup/Arduino-Makefile
 # have different paths to the boards.txt file compared to when sudar 
 # created his repo 
 # Linux 64bit installation folder: arduino-1.8.9/arduino-1.8.9/hardware/arduino/avr/boards.txt
-# BOARDS_TXT = 
+BOARDS_TXT = $(ARDUINO_DIR)/hardware/arduino/avr/boards.txt
 
 # Path to Arduino.mk
 include $(ARDMK_DIR)/Arduino.mk
