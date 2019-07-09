@@ -19,7 +19,7 @@ OBJDIR = ../bin
 
 # Path to the serial port used to send to Arduino
 # will be different depending on the OS
- MONITOR_PORT = /dev/ttyACM*
+MONITOR_PORT = /dev/ttyACM*
 
 # Path to the Arduino.mk file 
 ARDMK_DIR = ../setup/Arduino-Makefile
