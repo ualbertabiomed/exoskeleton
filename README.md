@@ -5,7 +5,7 @@ Getting started:
 These instructions will get you a cope of the project up and running on your local machine for development and testing purposes.
 
 Prerequisties: 
-visual studio; eclipse Photon C/C++IDE
+pathon 3
 
 Installing: 
 A step by step series of examples that tell you how to get a development env running. Say what the step will be, and repeat; end with an example of getting some data out of the system or using it for a little demo.
