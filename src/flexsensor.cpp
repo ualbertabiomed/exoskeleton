@@ -72,14 +72,14 @@ void loop()
 
 int main()
 {
-    init();
-    setup();
+  init();
+  setup();
 
-    while(true)
-    {
-        loop();
-    }
-    Serial.flush();
-    Serial.end();
-    return 0;
+  while(true)
+  {
+    loop();
+  }
+  Serial.flush();
+  Serial.end();
+  return 0;
 }
