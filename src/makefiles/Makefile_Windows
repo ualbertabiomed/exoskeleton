@@ -9,7 +9,6 @@ ARCHITECTURE = avr
 include ../../Arduino.mk
 
 
-
 # --- leonardo (or pro micro w/leo bootloader)
 #BOARD_TAG    = leonardo
 #MONITOR_PORT = /dev/ttyACM0
