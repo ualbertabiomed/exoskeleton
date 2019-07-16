@@ -41,7 +41,7 @@ git clone https://github.com/ualbertabiomed/exoskeleton.git
 ```
 
 **4. Configure the Makefile**
-
+- Uncomment only the MacOS section
 
 ### Linux 
 **Pre - requisites:** basic knowledge of terminal and navigating linux file system
@@ -67,7 +67,8 @@ git clone https://github.com/ualbertabiomed/exoskeleton.git
 ```
 
 **4. Configure the Makefile**
-
+- Uncomment only the Linux section
+- `ARDUINO_DIR` should be defined with the path to the arduino ide installation folder 
 
 ### Troubleshooting
 
