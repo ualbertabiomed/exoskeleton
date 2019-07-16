@@ -45,3 +45,4 @@ doc/
 include/gmock/
 include/gtest/
 linux/
+bin/
