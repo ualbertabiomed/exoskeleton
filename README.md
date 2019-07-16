@@ -68,9 +68,10 @@ git clone https://github.com/ualbertabiomed/exoskeleton.git
 
 **4. Configure the Makefile**
 - Uncomment only the Linux section
-- `ARDUINO_DIR` should be defined with the path to the arduino ide installation folder 
+- `ARDUINO_DIR` should be defined with the path to the Arduino IDE installation folder 
 
 ### Troubleshooting
+`-mmcu=` error. *Solution:* define BOARD_TAG and BOARD_SUB 
 
 ---
 Running the tests: 
