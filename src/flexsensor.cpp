@@ -64,6 +64,7 @@ void loop()
                    0, 90.0);
   currentTime = millis();
   controlVal = PD();
+  // time [space] error \n
   Serial.println("Bend: " + String(currentAngle) + " degrees");
   Serial.println("Current control value: " + String(controlVal));
   Serial.println();
