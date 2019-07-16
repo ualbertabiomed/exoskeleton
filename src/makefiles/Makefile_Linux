@@ -1,0 +1,41 @@
+# Sample Makefile to be used for UABiomed Arduino code 
+# July 6, 2019
+
+# Change depending board type 
+# Ex) uno mega2560 
+BOARD_TAG = uno
+
+# Path to custom libraries used / created 
+# Arduino.mk will look recursively in this path and 
+# in pre-defined library path for any libraries listed
+USER_LIB_PATH = ../lib
+
+# Custom or downloaded libraries used need to be listed here
+# as a space seperated list (name of the folder the library is stored in)
+ARDUINO_LIBS = Servo
+
+# Path to build files 
+OBJDIR = ../bin
+
+# Path to the serial port used to send to Arduino
+# will be different depending on the OS
+# MONITOR_PORT = 
+
+# Path to the Arduino.mk file 
+ARDMK_DIR = ../setup/Arduino-Makefile
+
+# Path to installed Arduino IDE 
+# This will depend on the OS (refer to sudar README)
+# ARDUINO_DIR = 
+
+# Name for generated target files 
+# TARGET = 
+
+# This may need to be defined as newer versions of the Arduino IDE
+# have different paths to the boards.txt file compared to when sudar 
+# created his repo 
+# Linux 64bit installation folder: arduino-1.8.9/arduino-1.8.9/hardware/arduino/avr/boards.txt
+# BOARDS_TXT = 
+
+# Path to Arduino.mk
+include $(ARDMK_DIR)/Arduino.mk

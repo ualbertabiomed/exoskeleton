@@ -30,7 +30,6 @@
 *.exe
 *.out
 *.app
-bin/bootstrap
 
 # Visual Studio
 *.suo
@@ -42,10 +41,8 @@ bin/bootstrap
 
 # Folders
 build/
-bin/
-lib/cmake/
-lib/pkgconfig/
 doc/
 include/gmock/
 include/gtest/
 linux/
+bin/
