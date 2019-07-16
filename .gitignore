@@ -30,7 +30,6 @@
 *.exe
 *.out
 *.app
-bin/bootstrap
 
 # Visual Studio
 *.suo
@@ -46,3 +45,4 @@ doc/
 include/gmock/
 include/gtest/
 linux/
+bin/

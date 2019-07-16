@@ -1,41 +1,43 @@
-# Sample Makefile to be used for UABiomed Arduino code 
-# July 6, 2019
+# uAlberta Biomed Makefile 
+# 
+# Requires configuration based on user operating system
+# and installation file paths 
 
-# Change depending board type 
-# Ex) uno mega2560 
-BOARD_TAG = uno
+#
+# Windows 
+#
 
-# Path to custom libraries used / created 
-# Arduino.mk will look recursively in this path and 
-# in pre-defined library path for any libraries listed
-USER_LIB_PATH = ../lib
+#
+# MacOS
+#
 
-# Custom or downloaded libraries used need to be listed here
-# as a space seperated list (name of the folder the library is stored in)
-ARDUINO_LIBS = Servo
+# Path to arduino IDE 1.x.x installation folder. Should be same if user followed guide.
+# ARDUINO_DIR = /Applications/Arduino.app/Contents/Java 
+# MONITOR_PORT = /dev/cu.usb*
 
-# Path to build files 
-OBJDIR = ../bin
+# 
+# Linux 
+# 
 
-# Path to the serial port used to send to Arduino
-# will be different depending on the OS
-MONITOR_PORT = /dev/ttyACM*
+# Path to arduino IDE 1.x.x installation folder 
+ARDUINO_DIR		= /usr/share/arduino/arduino-1.8.9/arduino-1.8.9
+MONITOR_PORT	= /dev/ttyACM*
 
-# Path to the Arduino.mk file 
-ARDMK_DIR = ../setup/Arduino-Makefile
 
-# Path to installed Arduino IDE 
-# This will depend on the OS (refer to sudar README)
-ARDUINO_DIR = /usr/share/arduino/arduino-1.8.9/arduino-1.8.9
+# Used for other arduino models (use `make show_submenu`)
+# BOARD_SUB 		= 
 
-# Name for generated target files 
-# TARGET = 
+#
+# Common
+#
 
-# This may need to be defined as newer versions of the Arduino IDE
-# have different paths to the boards.txt file compared to when sudar 
-# created his repo 
-# Linux 64bit installation folder: arduino-1.8.9/arduino-1.8.9/hardware/arduino/avr/boards.txt
-BOARDS_TXT = $(ARDUINO_DIR)/hardware/arduino/avr/boards.txt
+ARDMK_DIR 		= ../setup/Arduino-Makefile
+BOARD_TAG 		= uno
+ARCHITECTURE	= avr
+USER_LIB_PATH	= ../lib
+OBJDIR			= ../bin
 
-# Path to Arduino.mk
+# Space seperated list of included libraries
+# ARDUINO_LIBS	= 
+# From sudar's repo, main Makefile that compiles and uploads to Arduino
 include $(ARDMK_DIR)/Arduino.mk
