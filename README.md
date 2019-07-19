@@ -1,10 +1,10 @@
 # exoskeleton
 To design an upper body exoskeleton which would reduce the chance of repetitive strain injury and provide feedback on the users's posture. 
 
-Getting started: 
+##Getting started: 
 These instructions will get you a cope of the project up and running on your local machine for development and testing purposes.
 
-Prerequisties: 
+##Prerequisties: 
 python 3
 
 ---
