@@ -8,10 +8,7 @@ These instructions will get you a copy of the project up and running on your loc
 
 ---
 ## Installing: 
-A step by step series of examples that tell you how to get a development env running. Say what the step will be, and repeat; end with an example of getting some data out of the system or using it for a little demo.
-- As of July 6, 2019 latest Arduino IDE version: 1.8.9
-
-Based on your operating system, follow the guides below to install the Arduino IDE and pyserial followed by cloning this repo to your local system. After this, the Makefile must be edited for each user.
+Based on your operating system, follow the guides below to install the Arduino IDE and pySerial followed by cloning this repo to your local system. After this, the Makefile must be edited for each user.
 
 ### Windows 
 #### Install Cygwin
@@ -66,7 +63,10 @@ Based on your operating system, follow the guides below to install the Arduino I
 
 #### Clone exoskeleton repo
 Clone the exoskeleton repository to your computer (see other section…)
-- Possible issues: anti-virus blocks cygwin bash commands (mkdir, rm, cd , etc). Permission denied errors can be fixed if the user disables anti-virus for cygwin.
+
+#### Possible issues 
+- Anti-virus blocks cygwin bash commands (mkdir, rm, cd , etc). Permission denied errors can be fixed if the user disables anti-virus for cygwin.
+- If you get an error message when performing a `make upload` command (saying something about being unable to configure the port) then try opening the Arduino IDE and then compile and upload a blank sketch (with just an empty setup and loop) before you try ‘make upload’ again. Something about uploading a sketch using the Arduino IDE seems to help windows find the port in the future...
 
 ### MacOS
 **Pre - requisites:** basic knowledge of terminal and navigating macOS file system
@@ -81,7 +81,7 @@ Clone the exoskeleton repository to your computer (see other section…)
       - Download the correct package installer based on MacOS version 
       - To check MacOS version, click on the "Apple" on the top left and then "About this Mac"
 
-**3. Install Pyserial**
+**3. Install pySerial**
 - In the terminal:
 ```
 sudo port install py27-serial
@@ -106,7 +106,7 @@ git clone https://github.com/ualbertabiomed/exoskeleton.git
 - Store the installation folder somewhere you will remember (ex. `home` directory or `/usr/share`)
 - *Troubleshooting* you may need to run `chmod +x install.sh` prior to running `./installed.sh` 
 
-**2. Install Pyserial**
+**2. Install pySerial**
 - In the terminal:
 ```
 pip install pyserial
