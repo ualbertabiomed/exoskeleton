@@ -66,7 +66,10 @@ Based on your operating system, follow the guides below to install the Arduino I
 
 #### Clone exoskeleton repo
 Clone the exoskeleton repository to your computer (see other section…)
-- Possible issues: anti-virus blocks cygwin bash commands (mkdir, rm, cd , etc). Permission denied errors can be fixed if the user disables anti-virus for cygwin.
+
+##### Possible issues: 
+- Anti-virus blocks cygwin bash commands (mkdir, rm, cd , etc). Permission denied errors can be fixed if the user disables anti-virus for cygwin.
+- If you get an error message when performing a `make upload` command (saying something about being unable to configure the port) then try opening the Arduino IDE and then compile and upload a blank sketch (with just an empty setup and loop) before you try ‘make upload’ again. Something about uploading a sketch using the Arduino IDE seems to help windows find the port in the future...
 
 ### MacOS
 **Pre - requisites:** basic knowledge of terminal and navigating macOS file system
