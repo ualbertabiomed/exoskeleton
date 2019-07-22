@@ -8,14 +8,14 @@
 # Declare variables here
 # Default mode is to install.
 UNINSTALL=false
-RESOURCE_NAME=arduino-arduinoide
-
+DOWNLOAD_FILE=1.8.9-linux64
 # Get absolute path from which this script file was executed
 # (Could be changed to "pwd -P" to resolve symlinks to their target)
 SCRIPT_PATH=$( cd $(dirname $0) ; pwd )
 cd "${SCRIPT_PATH}"
 printf "SCRIPT PATH=${SCRIPT_PATH}\n"
 
+ARDUINO_DIR=/usr/local/arduino-1.8.9
 
 ############################################################################################################
 # COPIED FROM README
@@ -46,69 +46,53 @@ printf "SCRIPT PATH=${SCRIPT_PATH}\n"
 ############################################################################################################
 # Install by simply copying desktop file (fallback)
 simple_install_f() {
-
-  # Create a temp dir accessible by all users
-  TMP_DIR=`mktemp --directory`
-
-  # Create *.desktop file using the existing template file
-  sed -e "s,<BINARY_LOCATION>,${SCRIPT_PATH}/arduino,g" \
-      -e "s,<ICON_NAME>,${SCRIPT_PATH}/lib/arduino.png,g" "${SCRIPT_PATH}/lib/desktop.template" > "${TMP_DIR}/${RESOURCE_NAME}.desktop"
-
-  mkdir -p "${HOME}/.local/share/applications"
-  cp "${TMP_DIR}/${RESOURCE_NAME}.desktop" "${HOME}/.local/share/applications/"
-
-  mkdir -p "${HOME}/.local/share/metainfo"
-  cp "${SCRIPT_PATH}/lib/appdata.xml" "${HOME}/.local/share/metainfo/${RESOURCE_NAME}.appdata.xml"
-
-  # Copy desktop icon if desktop dir exists (was found)
-  if [ -d "${XDG_DESKTOP_DIR}" ]; then
-   cp "${TMP_DIR}/${RESOURCE_NAME}.desktop" "${XDG_DESKTOP_DIR}/"
-   # Altering file permissions to avoid "Untrusted Application Launcher" error on Ubuntu
-   chmod u+x "${XDG_DESKTOP_DIR}/${RESOURCE_NAME}.desktop"
+  install arduino ide from tar file to /usr/local/arduino-1.8.9
+  rm -rf ARDUINO_DIR
+  # mkdir ${ARDUINO_DIR}
+  cd /usr/local
+  if [ -f "/usr/local/arduino-${DOWNLOAD_FILE}.tar.xz" ]; then
+    rm /usr/local/arduino-${DOWNLOAD_FILE}.tar.xz
   fi
-
-  # Add symlink for arduino so it's in users path
-  echo "" # Ensure password request message is on new line
-  if ! ln -s ${SCRIPT_PATH}/arduino /usr/local/bin/arduino; then
-      echo "Adding symlink failed. Hope that's OK. If not then rerun as root with sudo."
-  fi
-
-  # Clean up temp dir
-  rm "${TMP_DIR}/${RESOURCE_NAME}.desktop"
-  rmdir "${TMP_DIR}"
-
-#   # Launching arduino-linux-setup.sh script
-#   #./arduino-linux-setup.sh $(whoami)
-
+  wget https://downloads.arduino.cc/arduino-${DOWNLOAD_FILE}.tar.xz
+  tar xvJf arduino-${DOWNLOAD_FILE}.tar.xz 
+  cd arduino*/
+  ./install.sh
+  rm ../arduino-${DOWNLOAD_FILE}.tar.xz
+  echo "\nArduino IDE installed to ${ARDUINO_DIR}"
+  # install pyserial
+  echo "Installing pyserial using pip..."
+  pip install pyserial
+  echo "Installing arduino-mk using apt-get..."
+  apt-get install arduino-mk
+  echo 'export ARDUINO_DIR='${ARDUINO_DIR} >> ~/.bashrc
+  echo 'export ARDMK_DIR=/usr/share/arduino' >> ~/.bashrc
+  echo 'export AVR_TOOLS_DIR=/usr/include' >> ~/.bashrc
+  cp ${SCRIPT_PATH}/Makefile-Linux ${SCRIPT_PATH}/../src/MakefileCopyTest
 }
 
 # Uninstall by simply removing desktop files (fallback), incl. old one
-simple_uninstall() {
-
+simple_uninstall_f() {
+  echo 'TODO Uninstalling...'
   # checks if file exists are removes if it does
-  if [ -f "${HOME}/.local/share/applications/arduino.desktop" ]; then
-    rm "${HOME}/.local/share/applications/arduino.desktop"
-  fi
+  # if [ -f "${HOME}/.local/share/applications/arduino.desktop" ]; then
+  #   rm "${HOME}/.local/share/applications/arduino.desktop"
+  # fi
 
-  # Remove symlink for arduino
-  echo "" # Ensure password request message is on new line
-  if ! rm /usr/local/bin/arduino; then
-      echo "Removing symlink failed. Hope that's OK. If not then rerun as root with sudo."
-  fi
+  # # Remove symlink for arduino
+  # echo "" # Ensure password request message is on new line
+  # if ! rm /usr/local/bin/arduino; then
+  #     echo "Removing symlink failed. Hope that's OK. If not then rerun as root with sudo."
+  # fi
 
 }
 
 # Shows a description of the available options
 display_help_f() {
   printf "\nThis script will install the necessary dependencies for the exoskeleton project\n"
-  # if ! xdg_exists_f; then
-  #   printf "\nxdg-utils are recommended to be installed, so this script can use them.\n"
-  # fi
   printf "\nOptional arguments are:\n\n"
   printf "\t-u, --uninstall\t\tRemoves environmental variables.\n\n"
   printf "\t-h, --help\t\tShows this help again.\n\n"
 }
-
 # Check for provided arguments
 while [ $# -gt 0 ] ; do
   ARG="${1}"
@@ -130,10 +114,10 @@ while [ $# -gt 0 ] ; do
 done
 
 if [ ${UNINSTALL} = true ]; then
-  printf "Uninstalling exoskeleton project..."
+  printf "Uninstalling exoskeleton project...\n"
   simple_uninstall_f
 else
-  printf "Installing exoskeleton project..."
+  printf "Installing exoskeleton project...\n"
   simple_uninstall_f
   simple_install_f
 fi

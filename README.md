@@ -97,6 +97,7 @@ git clone https://github.com/ualbertabiomed/exoskeleton.git
 - Basic knowledge of bash terminal and navigating Linux file system
 - Sudo privileges
 
+
 <!-- **1. Install Arduino IDE**
 - [Install](https://www.arduino.cc/en/main/software)
       - Choose Linux (32bit or 64bit depending on your computer) 
@@ -122,10 +123,16 @@ echo 'export BOARD_TAG=mega2560' >> ~/.bashrc
 ```
 - Uncomment only the Linux section -->
 
-**4. Clone exoskeleton repo**
+**1. Clone exoskeleton repo**
 ```
 git clone https://github.com/ualbertabiomed/exoskeleton.git
 cd exoskeleton
+```
+
+**2. Run install script**
+```
+sudo chmod +x /setup/install-linux.sh
+sudo ./setup/install-linux.sh
 ```
 
 ## Troubleshooting
