@@ -1,13 +1,10 @@
-# exoskeleton
+# Exoskeleton Project
 To design an upper body exoskeleton which would reduce the chance of repetitive strain injury and provide feedback on the users's posture. 
 
-## Getting started: 
+## Getting started
 These instructions will get you a copy of the project up and running on your local machine for development and testing purposes.
 
-## Prerequisties: 
-
----
-## Installing: 
+## Installation
 Based on your operating system, follow the guides below to install the Arduino IDE and pySerial followed by cloning this repo to your local system. After this, the Makefile must be edited for each user.
 
 ### Windows 
@@ -30,7 +27,7 @@ Based on your operating system, follow the guides below to install the Arduino I
     - make: The GNU version of the 'make' utility - Again type 'make' in the search bar and hit Enter. Again expand 'Devel' by clicking corresponding + button.
 
     - vim: Vi Improved - enhanced vi editor - Do the same but this time search vim and it should be in 'Editors' category.
-	
+  
     - Perl: Perl programming language interpreter - Search perl and expand the interpreters category. 
 
     - Python2: Python programming language interpreter - Search python and expand the interpreters category.
@@ -96,61 +93,51 @@ git clone https://github.com/ualbertabiomed/exoskeleton.git
 - Uncomment only the MacOS section
 
 ### Linux 
-**Pre - requisites:** basic knowledge of terminal and navigating linux file system
+**Pre-requisites:** 
+- Basic knowledge of bash terminal and navigating Linux file system
+- Sudo privileges
 
-**1. Install Arduino IDE**
+<!-- **1. Install Arduino IDE**
 - [Install](https://www.arduino.cc/en/main/software)
       - Choose Linux (32bit or 64bit depending on your computer) 
 - Installation Guide for Linux [here](https://www.arduino.cc/en/Guide/Linux) 
       - Follow up to and including "Run the install script"
 - Store the installation folder somewhere you will remember (ex. `home` directory or `/usr/share`)
-- *Troubleshooting* you may need to run `chmod +x install.sh` prior to running `./installed.sh` 
+- *Troubleshooting* you may need to run `chmod +x install.sh` prior to running `./install.sh` 
 
 **2. Install pySerial**
 - In the terminal:
 ```
 pip install pyserial
 ```
-- pip should already be installed on most linux machines if python 2 or python 3 is installed 
+- Note: pip should already be installed on most linux machines if python 2 or python 3 is installed 
 
-**3. Clone exoskeleton repo**
+**3. Install Arduino Makefile**
+```
+sudo apt-get install arduino-mk
+echo 'export ARDUINO_DIR={Path to Arduino installation}' >> ~/.bashrc
+echo 'export ARDMK_DIR=/usr/share/arduino' >> ~/.bashrc
+echo 'export AVR_TOOLS_DIR=/usr/include' >> ~/.bashrc
+echo 'export BOARD_TAG=mega2560' >> ~/.bashrc
+```
+- Uncomment only the Linux section -->
+
+**4. Clone exoskeleton repo**
 ```
 git clone https://github.com/ualbertabiomed/exoskeleton.git
+cd exoskeleton
 ```
 
-**4. Configure the Makefile**
-- Uncomment only the Linux section
-- `ARDUINO_DIR` should be defined with the path to the Arduino IDE installation folder 
-
-### Troubleshooting
+## Troubleshooting
 `-mmcu=` error. *Solution:* define BOARD_TAG and BOARD_SUB 
 
 ---
-Running the tests: 
+## Running the tests
 Explain how to run the automated tests for this system.
 Break down into end to end tests: Explain what thest tests test and why.
-
-Coding style tests:
-Explain what these tests test and why.
-
-Development: 
-Add additional notes about how to deploy this on a live system.
-
-Built with: 
-
-Contributing: 
-Please read       for details on our code of conduct and the process for submitting pull requests to us.
-
-Versioning: 
-We use       for versioning. For the version available, see.        .
-Authors: 
-      - Initial work -
-See also the list of contributors who participated in this project.
-
-License: 
-This project is licensed under the         .
+       .
+## License 
+This project is licensed under ...        .
  
- Acknowledgements: 
- Hat tip to anyone whose code was used
- Inspiration
- etc
+## Acknowledgements
+Hat tip to anyone whose code was used, inspiration, references, etc.
