@@ -7,7 +7,7 @@ template<class T> inline Print& operator <<(Print &obj,     T arg) { obj.print(a
 template<>        inline Print& operator <<(Print &obj, float arg) { obj.print(arg, 4); return obj; }
 
 // Serial to the ODrive
-SoftwareSerial odrive_serial(8, 9); //RX (ODrive TX), TX (ODrive RX)
+SoftwareSerial odrive_serial(10, 11); //RX (ODrive TX), TX (ODrive RX)
 // Note: you must also connect GND on ODrive to GND on Arduino!
 
 ODriveArduino odrive(odrive_serial);
@@ -16,16 +16,16 @@ ODriveArduino odrive(odrive_serial);
 
 // Measure the voltage at 5V and the actual resistance of your
 // 47k resistor, and enter them below:
-const float VCC = 4.98; // Measured voltage of Ardunio 5V line
-const float R_DIV = 47500.0; // Measured resistance of 3.3k resistor
+// const float VCC = 4.98; // Measured voltage of Ardunio 5V line
+// const float R_DIV = 47500.0; // Measured resistance of 3.3k resistor
 
-// Upload the code, then try to adjust these values to more
-// accurately calculate bend degree.
-const float STRAIGHT_RESISTANCE = 37300.0; // resistance when straight
-const float BEND_RESISTANCE = 90000.0; // resistance at 90 deg
+// // Upload the code, then try to adjust these values to more
+// // accurately calculate bend degree.
+// const float STRAIGHT_RESISTANCE = 37300.0; // resistance when straight
+// const float BEND_RESISTANCE = 90000.0; // resistance at 90 deg
 
-const float minFlex = 12; 
-const float maxFlex = 200;
+// const float minFlex = 12; 
+// const float maxFlex = 200;
 float targetPosition = 90; 
 float currentPosition;
 float currentTime;

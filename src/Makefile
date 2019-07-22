@@ -31,13 +31,13 @@ MONITOR_PORT	= /dev/ttyACM*
 # Common
 #
 
-ARDMK_DIR 		= ../setup/Arduino-Makefile
+ARDMK_DIR 		= /usr/share/arduino
 BOARD_TAG 		= uno
 ARCHITECTURE	= avr
 USER_LIB_PATH	= ../lib
 OBJDIR			= ../bin
 
 # Space seperated list of included libraries
-# ARDUINO_LIBS	= 
+ARDUINO_LIBS	= ODrive
 # From sudar's repo, main Makefile that compiles and uploads to Arduino
 include $(ARDMK_DIR)/Arduino.mk
