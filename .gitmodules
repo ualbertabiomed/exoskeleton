@@ -1,9 +1,0 @@
-[submodule "Arduino-Makefile"]
-	path = Arduino-Makefile
-	url = https://github.com/sudar/Arduino-Makefile
-[submodule "setup/Arduino-Makefile"]
-	path = setup/Arduino-Makefile
-	url = https://github.com/sudar/Arduino-Makefile
-[submodule "lib/ODrive"]
-	path = lib/ODrive
-	url = https://github.com/madcowswe/ODrive.git
