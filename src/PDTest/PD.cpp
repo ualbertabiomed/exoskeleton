@@ -52,34 +52,35 @@ void loop()
 {
   float controlVal;
 
-  // Read the ADC, and calculate voltage and resistance from it
-  int flexADC = analogRead(FLEX_PIN);
-  float flexV = flexADC * VCC / 1023.0;
-  float flexR = R_DIV * (VCC / flexV - 1.0);
-  Serial.println("Resistance: " + String(flexR) + " ohms");
-
-  // Use the calculated resistance to estimate the sensor's
-  // bend angle:
   currentAngle = map(flexR, STRAIGHT_RESISTANCE, BEND_RESISTANCE,
                    0, 90.0);
+
+  // PD stuff
   currentTime = millis();
   controlVal = PD();
-  Serial.println("Bend: " + String(currentAngle) + " degrees");
-  Serial.println("Current control value: " + String(controlVal));
+
+  // Values to be recorded from Serial (time [space] error \n)
+  Serial.print(currentTime);
+  Serial.print(" ");
+  Serial.println(controlVal);
   Serial.println();
+
+  // Change delay as necessary
   delay(500);
 }
 
 int main()
 {
-    init();
-    setup();
+  init();
+  setup();
 
-    while(true)
-    {
-        loop();
-    }
-    Serial.flush();
-    Serial.end();
-    return 0;
+  while(true)
+  {
+    loop();
+  }
+
+  Serial.flush();
+  Serial.end();
+  
+  return 0;
 }
