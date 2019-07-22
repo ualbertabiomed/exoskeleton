@@ -126,7 +126,7 @@ void loop()
       for(;;) {
         float controlVal;
 
-        currentPosition = NOTREALGETPOSITION();
+        // currentPosition = NOTREALGETPOSITION();
 
         // PD stuff
         currentTime = millis();
