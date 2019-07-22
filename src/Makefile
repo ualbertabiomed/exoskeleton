@@ -38,6 +38,6 @@ USER_LIB_PATH	= ../lib
 OBJDIR			= ../bin
 
 # Space seperated list of included libraries
-ARDUINO_LIBS	= ODrive SoftwareSerial
+ARDUINO_LIBS	= ODrive/Arduino SoftwareSerial
 # From sudar's repo, main Makefile that compiles and uploads to Arduino
 include $(ARDMK_DIR)/Arduino.mk
