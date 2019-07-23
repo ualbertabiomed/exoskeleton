@@ -31,7 +31,7 @@ MONITOR_PORT	= /dev/ttyACM*
 # Common
 #
 
-ARDMK_DIR 		= ../setup
+ARDMK_DIR 		= /usr/share/arduino
 BOARD_TAG 		= uno
 ARCHITECTURE	= avr
 USER_LIB_PATH	= ../lib
