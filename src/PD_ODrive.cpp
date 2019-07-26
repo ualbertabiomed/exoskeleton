@@ -52,6 +52,83 @@ float PD() {
     return output;
 }
 
+
+String readODrive(String input) {
+    odrive_serial << input;
+
+    String str = "";
+    static const unsigned long timeout = 1000;
+    unsigned long timeout_start = millis();
+    for (;;) {
+        while (!odrive_serial.available()) {
+            if (millis() - timeout_start >= timeout) {
+                return str;
+            }
+        }
+        char c = odrive_serial.read();
+        if (c == '\n')
+            break;
+        str += c;
+    }
+    return str;
+}
+
+bool errorCheck() {
+    bool check;
+    String result;
+
+    check = true;
+
+    result = readODrive("r axis0.error\n");
+    if(result != '0') {
+        Serial.print("axis0.error == ");
+        Serial.println(result.toInt(), HEX);
+        check = false;
+    }
+
+    result = readODrive("r axis0.motor.config.direction\n");
+    if(result != "1" || result != "-1") {
+        Serial.print("axis0.motor.config.direction == ");
+        Serial.println(result);
+        check = false;
+    }
+
+    return check;
+}
+
+void calibration() {
+    odrive_serial << "w axis0.encoder.config.use_index True" << '\n';
+    int motornum = '0'-'0';
+    int requested_state;
+
+    requested_state = ODriveArduino::AXIS_STATE_MOTOR_CALIBRATION;
+    Serial << "Axis" << '0' << ": Requesting state " << requested_state << '\n';
+    odrive.run_state(motornum, requested_state, true);
+
+    requested_state = ODriveArduino::AXIS_STATE_ENCODER_INDEX_SEARCH;
+    Serial << "Axis" << '0' << ": Requesting state " << requested_state << '\n';
+    odrive.run_state(motornum, requested_state, true);
+
+    // odrive.run_state(0, ODriveArduino::AXIS_STATE_ENCODER_INDEX_SEARCH, true);
+    // odrive.run_state(0, ODriveArduino::AXIS_STATE_ENCODER_OFFSET_CALIBRATION, true);
+    // odrive_serial << "w axis0.requested_state " << ODriveArduino::AXIS_STATE_ENCODER_INDEX_SEARCH << '\n';
+    // odrive_serial << "w axis0.requested_state " << ODriveArduino::AXIS_STATE_ENCODER_OFFSET_CALIBRATION << '\n';
+
+    if(errorCheck()) {
+        Serial.print("axis0.encoder.config.offset == ");
+        Serial.println(readODrive("axis0.encoder.config.offset\n"));
+
+        odrive_serial << "w axis0.encoder.config.pre_calibrated True\n";
+        odrive_serial << "w axis0.config.startup_encoder_index_search True\n";
+        odrive_serial << "w axis0.motor.config.pre_calibrated True\n";
+        odrive_serial << "axis0.save_configuration()\n";
+        odrive_serial << "odrv0.reboot()\n";
+
+    } else {
+        Serial.println("There was an error!!");
+    }
+}
+
 void setup() {
     // ODrive uses 115200 baud
     odrive_serial.begin(115200);
@@ -70,6 +147,8 @@ void setup() {
         // This ends up writing something like "w axis0.motor.config.current_lim 11.0\n"
     }
 
+    // calibration();
+
     Serial.println("Ready!");
     Serial.println("Send the character '0' calibrate motor (you must do this before you can command movement)");
     Serial.println("Send the character 's' to exectue test move");
@@ -79,45 +158,46 @@ void setup() {
     Serial.println("Send the character 'p' to read motor positions in a 10s loop");
 }
 
+
 void loop() {
     if (Serial.available()) {
         char c = Serial.read();
 
-        if(c == 'g') {
-            odrive_serial << "r axis0.motor.config.pre_calibrated" << '\n';
-            String str = "";
-            static const unsigned long timeout = 1000;
-            unsigned long timeout_start = millis();
-            for(;;) {
-                while(!odrive_serial.available()) {
-                    if(millis() - timeout_start >= timeout) {
-                        return str;
-                    }
-                }
-                char c = odrive_serial.read();
-                if(c == '\n') {
-                    break;
-                }
-                str += c;
-            }
-            Serial << "Is the motor calibrated? " << str << '\n';
+        // if(c == 'g') {
+        //     odrive_serial << "r axis0.motor.config.pre_calibrated" << '\n';
+        //     String str = "";
+        //     static const unsigned long timeout = 1000;
+        //     unsigned long timeout_start = millis();
+        //     for(;;) {
+        //         while(!odrive_serial.available()) {
+        //             if(millis() - timeout_start >= timeout) {
+        //                 return str;
+        //             }
+        //         }
+        //         char c = odrive_serial.read();
+        //         if(c == '\n') {
+        //             break;
+        //         }
+        //         str += c;
+        //     }
+        //     Serial << "Is the motor calibrated? " << str << '\n';
 
-            odrive_serial << "r axis0.encoder.config.pre_calibrated" << '\n';
-            timeout_start = millis();
-            for(;;) {
-                while(!odrive_serial.available()) {
-                    if(millis() - timeout_start >= timeout) {
-                        return str;
-                    }
-                }
-                char c = odrive_serial.read();
-                if(c == '\n') {
-                    break;
-                }
-                str += c;
-            }
-            Serial << "Is the encoder calibrated? " << str << '\n';   
-        }
+        //     odrive_serial << "r axis0.encoder.config.pre_calibrated" << '\n';
+        //     timeout_start = millis();
+        //     for(;;) {
+        //         while(!odrive_serial.available()) {
+        //             if(millis() - timeout_start >= timeout) {
+        //                 return str;
+        //             }
+        //         }
+        //         char c = odrive_serial.read();
+        //         if(c == '\n') {
+        //             break;
+        //         }
+        //         str += c;
+        //     }
+        //     Serial << "Is the encoder calibrated? " << str << '\n';   
+        // }
 
         if (c == 's') {
             Serial.println("Executing test move");
@@ -163,9 +243,10 @@ void loop() {
             }
         }
 
-
         // Run calibration sequence
         if (c == '0') {
+            odrive_serial << "w axis0.encoder.config.use_index True" << '\n';
+
             int motornum = c-'0';
             int requested_state;
 
@@ -174,19 +255,23 @@ void loop() {
             odrive.run_state(motornum, requested_state, true);
 
             // This should store the calibration
-            // Not sure if the syntax is correct, goal was to send the string command to the serial -cyrus 
-            odrive_serial << "w axis0.motor.config.pre_calibrated = True" << '\n';
+            // Not sure if the syntax is correct, goal was to send the String command to the serial -cyrus 
+            // odrive_serial << "w axis0.motor.config.pre_calibrated = True" << '\n';
 
             requested_state = ODriveArduino::AXIS_STATE_ENCODER_OFFSET_CALIBRATION;
             Serial << "Axis" << c << ": Requesting state " << requested_state << '\n';
             odrive.run_state(motornum, requested_state, true);
 
             // This should store the calibration
-            // Not sure if the syntax is correct, goal was to send the string command to the serial -cyrus
-            odrive_serial << "w axis0.encoder.pre_calibrated = True" << '\n';
+            // Not sure if the syntax is correct, goal was to send the String command to the serial -cyrus
+            // odrive_serial << "w axis0.encoder.pre_calibrated = True" << '\n';
 
             requested_state = ODriveArduino::AXIS_STATE_CLOSED_LOOP_CONTROL;
             Serial << "Axis" << c << ": Requesting state " << requested_state << '\n';
+            odrive.run_state(motornum, requested_state, false); // don't wait
+            odrive_serial << "w axis0.controller.set_vel_setpoint(3000,0)" << '\n';
+            delay(3000);
+            requested_state = ODriveArduino::AXIS_STATE_IDLE;
             odrive.run_state(motornum, requested_state, false); // don't wait
         }
 
