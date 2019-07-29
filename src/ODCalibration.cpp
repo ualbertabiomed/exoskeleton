@@ -25,9 +25,10 @@ void setup()
   Serial.println("Setting parameters...");
 
   int numMotors = 1;
+  int axis = 0;
   // Note: save the configuration and reboot as the gains are written out to the DRV 
   // (MOSFET driver) only during startup
-  for (int axis = 0; axis < numMotors; ++axis) {
+  for (; axis < numMotors; ++axis) {
     // Set vel_limit; the motor will be limited to this speed [counts/s]
     odrive_serial << "w axis" << axis << ".controller.config.vel_limit " << 22000.0f << '\n';
     // Set current_lim; the motor will be limited to this current [A]
@@ -36,7 +37,7 @@ void setup()
 
     // Set the encoder config; values will vary depending on the encoder used check datasheet
     odrive_serial << "w axis" << axis << ".encoder.config.cpr " << 8192 << '\n';
-    odrive_serial << "w axis" << axis << ".encoder.config.mode " << ENCODER_MODE_INCREMENTAL << '\n';
+    odrive_serial << "w axis" << axis << ".encoder.config.mode " << "ENCODER_MODE_INCREMENTAL" << '\n';
   }
 
   // Save configuration
@@ -52,8 +53,9 @@ void setup()
   odrive_serial << "w axis" << axis << ".encoder.config.mode";
 
 
-  Serial.println("Ready!");
+  Serial.println("ODCalibration ; Ready!");
   Serial.println("Send the character '0' calibrate motor (you must do this before you can command movement)");
+  Serial.println("Send the character 'w' calibrate motor (should be guaranteed to work but isnt)");
   Serial.println("Send the character 's' to exectue test move");
   Serial.println("Send the character 'b' to read bus voltage");
   Serial.println("Send the character 'p' to read motor positions in a 10s loop");
@@ -65,9 +67,28 @@ void loop()
     char c = Serial.read();
 
     // Run calibration sequence
+    if (c == 'w') {
+      int motornum = c-'0';
+      int requested_state;
+
+      requested_state = ODriveArduino::AXIS_STATE_MOTOR_CALIBRATION;
+      Serial << "Axis" << c << ": Requesting state " << requested_state << '\n';
+      odrive.run_state(motornum, requested_state, true);
+
+      requested_state = ODriveArduino::AXIS_STATE_ENCODER_OFFSET_CALIBRATION;
+      Serial << "Axis" << c << ": Requesting state " << requested_state << '\n';
+      odrive.run_state(motornum, requested_state, true);
+
+      requested_state = ODriveArduino::AXIS_STATE_CLOSED_LOOP_CONTROL;
+      Serial << "Axis" << c << ": Requesting state " << requested_state << '\n';
+      odrive.run_state(motornum, requested_state, false); // don't wait
+    }
+
+    // Run calibration sequence
     if (c == '0') {
       // If your motor has problems reaching the index location due to the mechanical load, you can increase <axis>.motor.config.calibration_current
       int motornum = c-'0';
+      int axis = 0;
       int requested_state;
 
       requested_state = ODriveArduino::AXIS_STATE_MOTOR_CALIBRATION;
@@ -121,6 +142,7 @@ void loop()
       // Save configuration
       odrive_serial << "odrv0.save_configuration()";
       odrive_serial << "odrv0.reboot()";
+      delay(5000);
     }
 
     // Sinusoidal test move
