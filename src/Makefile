@@ -2,26 +2,12 @@
 # 
 # Requires configuration based on user operating system
 # and installation file paths 
-
-#
-# Windows 
-#
-
-#
-# MacOS
-#
-
-# Path to arduino IDE 1.x.x installation folder. Should be same if user followed guide.
-# ARDUINO_DIR = /Applications/Arduino.app/Contents/Java 
-# MONITOR_PORT = /dev/cu.usb*
-
-# 
-# Linux 
-# 
+# Arduino Make file. Refer to https://github.com/sudar/Arduino-Makefile
 
 # Path to arduino IDE 1.x.x installation folder 
-ARDUINO_DIR		= /usr/share/arduino/arduino-1.8.9/arduino-1.8.9
-MONITOR_PORT	= /dev/ttyACM*
+ARDUINO_DIR   = D:/Arduino
+BOARD_TXT	= D:/Arduino/hardware/arduino/avr
+MONITOR_PORT	= com5
 
 
 # Used for other arduino models (use `make show_submenu`)
@@ -31,11 +17,15 @@ MONITOR_PORT	= /dev/ttyACM*
 # Common
 #
 
-ARDMK_DIR 		= /usr/share/arduino
+ARDMK_DIR 		= ../../../Projects/Arduino-Makefile
 BOARD_TAG 		= uno
 ARCHITECTURE	= avr
 USER_LIB_PATH	= ../lib
 OBJDIR			= ../bin
+
+# Windows monitor
+MONITOR_CMD   = putty
+MONITOR_PARAMS = 8,1,n,N
 
 # Space seperated list of included libraries
 ARDUINO_LIBS	= SoftwareSerial ODrive/Arduino/ODriveArduino
