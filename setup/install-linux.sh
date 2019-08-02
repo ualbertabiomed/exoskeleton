@@ -67,7 +67,7 @@ simple_install_f() {
   echo 'export ARDUINO_DIR='${ARDUINO_DIR} >> ~/.bashrc
   echo 'export ARDMK_DIR=/usr/share/arduino' >> ~/.bashrc
   echo 'export AVR_TOOLS_DIR=/usr/include' >> ~/.bashrc
-  cp ${SCRIPT_PATH}/Makefile-Linux ${SCRIPT_PATH}/../src/MakefileCopyTest
+  cp ${SCRIPT_PATH}/Makefile-Linux ${SCRIPT_PATH}/../src/Makefile
 }
 
 # Uninstall by simply removing desktop files (fallback), incl. old one
