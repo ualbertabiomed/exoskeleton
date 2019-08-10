@@ -131,7 +131,7 @@ cd exoskeleton
 
 **2. Run install script**
 ```
-sudo chmod +x /setup/install-linux.sh
+sudo chmod +x setup/install-linux.sh
 sudo ./setup/install-linux.sh
 ```
 

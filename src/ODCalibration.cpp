@@ -14,32 +14,36 @@ ODriveArduino odrive(odrive_serial);
 
 void setup() 
 {
+
   // ODrive uses 115200 baud
   odrive_serial.begin(115200);
 
   // Serial to PC
   Serial.begin(9600);
   while (!Serial) ; // wait for Arduino Serial Monitor to open
+  
 
   Serial.println("ODriveArduino");
+  // Reboot
+  odrive_serial << "odrv0.reboot()";
+  Serial.println("Rebooted...");
   Serial.println("Setting parameters...");
 
   int numMotors = 1;
-  int axis = 0;
   // Note: save the configuration and reboot as the gains are written out to the DRV 
   // (MOSFET driver) only during startup
-  for (; axis < numMotors; ++axis) {
+  for (int i = 0; i < numMotors; ++i) {
     // Set vel_limit; the motor will be limited to this speed [counts/s]
-    odrive_serial << "w axis" << axis << ".controller.config.vel_limit " << 22000.0f << '\n';
+    odrive_serial << "w axis" << i << ".controller.config.vel_limit " << 22000.0f << '\n';
     // Set current_lim; the motor will be limited to this current [A]
-    odrive_serial << "w axis" << axis << ".motor.config.current_lim " << 11.0f << '\n';
+    odrive_serial << "w axis" << i << ".motor.config.current_lim " << 11.0f << '\n';
     // This ends up writing something like "w axis0.motor.config.current_lim 11.0\n"
 
     // Set the encoder config; values will vary depending on the encoder used check datasheet
-    odrive_serial << "w axis" << axis << ".encoder.config.cpr " << 8192 << '\n';
-    odrive_serial << "w axis" << axis << ".encoder.config.mode " << "ENCODER_MODE_INCREMENTAL" << '\n';
+    odrive_serial << "w axis" << i << ".encoder.config.cpr " << 8192 << '\n';
+    odrive_serial << "w axis" << i << ".encoder.config.mode " << "ENCODER_MODE_INCREMENTAL" << '\n';
   }
-
+  int axis = 0;
   // Save configuration
   odrive_serial << "odrv0.save_configuration()";
   odrive_serial << "odrv0.reboot()";
