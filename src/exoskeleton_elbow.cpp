@@ -12,14 +12,20 @@
 
 #include "exoskeleton.h"
 
+
 // Printing with stream operator
 template<class T> inline Print& operator <<(Print &obj,     T arg) { obj.print(arg);    return obj; }
 template<>        inline Print& operator <<(Print &obj, float arg) { obj.print(arg, 4); return obj; }
 
+
 /*
     @brief: Initializes Arduino and Odrive communications 
+    RX (ODrive TX), TX (ODrive RX)
 */
-Exoskeleton::Exoskeleton() {
+Exoskeleton::Exoskeleton() :
+    odrive_serial(10, 11), 
+    odrive(odrive_serial)
+{
     // Arduino header library 
     init();   
     
@@ -33,17 +39,11 @@ Exoskeleton::Exoskeleton() {
     Serial.begin(9600);
     while (!Serial) ; // wait for Arduino Serial Monitor to open
 
-
-    SoftwareSerial *odrive_serial_ptr;
-    ODriveArduino *odrive_lib_ptr;
-
-    odrive_serial_ptr = new SoftwareSerial(10,11);
-    odrive_lib_ptr = new ODriveArduino(*odrive_serial_ptr);
-
     // Serial to the ODrive
-    this->odrive_serial = *odrive_serial_ptr; //RX (ODrive TX), TX (ODrive RX)
+    // odrive_serial(10,11); //RX (ODrive TX), TX (ODrive RX)
     // Note: you must also connect GND on ODrive to GND on Arduino!
-    this->odrive = *odrive_lib_ptr;
+    // odrive(odrive_serial);
+
 
     // ODrive uses 115200 baud
     odrive_serial.begin(115200);
@@ -57,7 +57,7 @@ void Exoskeleton::run() {
     Serial.println("Starting exoskeleton");
     Serial.println("Send the character 'c' to recalibrate the motor");
     Serial.println("Send the character 'q' to quit");
-
+    odrive.SetVelocity(0,0);
     char ch;
     bool quit = 0;
     while(!quit) {
@@ -82,7 +82,7 @@ void Exoskeleton::calibration() {
     Serial.println("ODriveArduino");
 
     // Reboot
-    odrive_serial << "odrv0.reboot()";
+    write_odrive("odrv0.reboot()");
     Serial.println("Rebooted...");
     Serial.println("Setting parameters...");
 
@@ -91,33 +91,29 @@ void Exoskeleton::calibration() {
     // (MOSFET driver) only during startup
     for (int i = 0; i < numMotors; ++i) {
 
+        Serial.println("setting initial values");
         // Set vel_limit; the motor will be limited to this speed [counts/s]
-        write_odrive(i, ".controller.config.vel_limit", 22000.0f);
+        write_axis(i, ".controller.config.vel_limit", 22000.0f);
         // Set current_lim; the motor will be limited to this current [A]
-        write_odrive(i, ".motor.config.current_lim", 11.0f);
+        write_axis(i, ".motor.config.current_lim", 11.0f);
         // This ends up writing something like "w axis0.motor.config.current_lim 11.0\n"
 
         // Set the encoder config; values will vary depending on the encoder used check datasheet
-        write_odrive(i, ".encoder.config.cpr", 8192);
-        write_odrive(i, ".encoder.config.mode ENCODER_MODE_INCREMENTAL");
+        write_axis(i, ".encoder.config.cpr", 8192);
+        write_axis(i, ".encoder.config.mode ENCODER_MODE_INCREMENTAL");
 
         // Print vel_limit and current_lim to serial to verify they were set correctly
         // Might need to switch this to ( Serial  << "Axis" ) stream instead to have it printed to monitor
-        String command;
 
-        command = "w axis" + i + ".controller.config.vel_limit";
-        check_odrive_calibration(command,"22000.0");
-
-        command = "w axis" + i + ".motor.config.current_lim";
-        check_odrive_calibration(command,"11.0");
-
-        command = "w axis" + i + ".encoder.config.cpr";
-        check_odrive_calibration(command,"8192");
+        check_odrive_calibration(i, ".controller.config.vel_limit", "22000");
+        check_odrive_calibration(i, ".motor.config.current_lim","11.0");
+        check_odrive_calibration(i, ".encoder.config.cpr","8192");
     }
 
     // Save configuration
-    odrive_serial << "odrv0.save_configuration()";
-    odrive_serial << "odrv0.reboot()";
+    Serial.println("saving config and rebooting");
+    write_odrive("odrv0.save_configuration()");
+    write_odrive("odrv0.reboot()");
 
     // Delay to give time to reboot
     delay(5000);
@@ -139,7 +135,7 @@ void Exoskeleton::calibration() {
         // Not in documentation but assume that a successful motor calibration will make the <axis>.motor.is_ready go to true
         // Otherwise, need to set here so that we can later enter offset_calibration
 
-        write_odrive(i,".encoder.config.use_index True");
+        write_axis(i,".encoder.config.use_index True");
 
         // Turn the motor in one direction until the encoder index is traversed
         // This state can only be entered if <axis>.encoder.config.use_index is True
@@ -154,27 +150,29 @@ void Exoskeleton::calibration() {
         call_run_state(i, requested_state, true);
 
         // Check that the encoder calibration was successful
+        check_odrive_calibration(i, ".error","0");
+
         String command;
+        String outputVal;
 
-        command = "w axis" + i + ".error";
-        check_odrive_calibration(command,"0");
-
-        command = "w axis" + i + ".encoder.config.offset";
-        outputVal = readOdrive(command);
+        command = "w axis" + i;
+        command += ".encoder.config.offset";
+        outputVal = read_odrive(command);
         Serial << command << " == " << outputVal << '\n'; // This should print a number, like -326 or 1364
 
-        command = "w axis" + i + ".motor.config.direction";
-        outputVal = readOdrive(command);
+        command = "w axis" + i;
+        command += ".motor.config.direction";
+        outputVal = read_odrive(command);
         if (outputVal != '1' || outputVal != "-1") {
-            calibrationError(command, outputVal);
+            calibration_error(command, outputVal);
         }
         Serial << command << " == " << outputVal << '\n';
 
         // Set so that we dont need to manually call <axis>.requested_state = AXIS_STATE_ENCODER_INDEX_SEARCH  on every bootup
         // Instead will automatically search for the index at startup
-        write_odrive(i, ".encoder.config.pre_calibrated True");
-        write_odrive(i, ".config.startup_encoder_index_search True");
-        write_odrive(i, ".motor.config.pre_calibrated True");
+        write_axis(i, ".encoder.config.pre_calibrated True");
+        write_axis(i, ".config.startup_encoder_index_search True");
+        write_axis(i, ".motor.config.pre_calibrated True");
 
         requested_state = ODriveArduino::AXIS_STATE_CLOSED_LOOP_CONTROL;
         call_run_state(i, requested_state, false);
@@ -182,10 +180,19 @@ void Exoskeleton::calibration() {
     }
 
     // Save configuration
-    odrive_serial << "odrv0.save_configuration()";
-    odrive_serial << "odrv0.reboot()";
+    write_odrive("odrv0.save_configuration()");
+    write_odrive("odrv0.reboot()");
 
     delay(5000);
+}
+
+/*
+    @brief: writes a command to a specific odrive (will need improvements)
+
+    @param: command to send to the connected odrive
+*/
+void Exoskeleton::write_odrive(String command) {
+    odrive_serial << command << '\n';
 }
 
 /*
@@ -194,8 +201,8 @@ void Exoskeleton::calibration() {
     @param: axis, motor 1 or 0 
     @param: command, string command being sent to odrive 
 */
-void Exoskeleton::write_odrive(int axis, String command) {
-    odrive << "w axis" << axis << command << '\n';
+void Exoskeleton::write_axis(int axis, String command) {
+    odrive_serial << "w axis" << axis << command << '\n';
 }
 
 /*
@@ -205,8 +212,8 @@ void Exoskeleton::write_odrive(int axis, String command) {
     @param: command, string command being sent to odrive
     @param: val, float value to send to odrive 
 */
-void Exoskeleton::write_odrive(int axis, String command, float val) {
-    odrive << "w axis" << axis << command << ' ' << val << '\n';
+void Exoskeleton::write_axis(int axis, String command, float val) {
+    odrive_serial << "w axis" << axis << command << ' ' << val << '\n';
 }
 
 /*
@@ -266,16 +273,19 @@ String Exoskeleton::read_odrive(String input) {
     @param: expected_value, the value the parameter should be set to
     @return: calibrated, true if the value was set properly
 */
-void Exoskeleton::check_odrive_calibration(String command, String expected_value) {
+void Exoskeleton::check_odrive_calibration(int i, String command, String expected_value) {
+    String input;
     String output;
-
-    output = read_odrive(command);  // reads the value from odrive 
-    
+    Serial.println(command);    
+    input = "w axis" + i;
+    input += command + '\n';
+    output = read_odrive(input);  // reads the value from odrive 
+    Serial.println(output);
     // Check if the return value is the expected 
     if(output != expected_value) {
+        Serial.println("Error!!");
         calibration_error(command, output);
     }
-
     write_terminal(command, expected_value);
 }
 

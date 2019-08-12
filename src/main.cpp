@@ -16,7 +16,7 @@
 using namespace std;
 
 int main(){
-    Exoskeleton exo();
+    Exoskeleton exo;
     exo.run();
 
     return 0;

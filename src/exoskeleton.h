@@ -27,30 +27,30 @@ struct Gains {
 };
 
 class Exoskeleton {
+
+protected:
+Gains gains;
+SoftwareSerial odrive_serial;
+ODriveArduino odrive;
+
 public:
 	Exoskeleton();
-	~Exoskeleton();
 	void run();
     void calibration();
-	void write_odrive(int axis, String command);
-	void write_odrive(int axis, String command, float val);
+	void write_odrive(String command);
+	void write_axis(int axis, String command);
+	void write_axis(int axis, String command, float val);
 	void write_terminal(String command, String val);
 	String read_odrive(String input);
 	void call_run_state(int axis, int requested_state, bool wait);
-	void check_odrive_calibration(String command, String expected_value);
+	void check_odrive_calibration(int axis,String command, String expected_value);
 	void calibration_error(String command, String output);
 	char wait_for_input();
 	double pid();
 	double set_point();
 	void loop();
 
-protected:
-	Gains gains;
-
 private:
-    SoftwareSerial *odrive_serial;
-    ODriveArduino *odrive;
-
 
 	const String HEADER = "\nExoskeleton © 2019 UAlbertaBiomed\n\n";
 };
