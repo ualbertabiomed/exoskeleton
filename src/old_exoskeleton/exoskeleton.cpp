@@ -21,7 +21,7 @@ template<>        inline Print& operator <<(Print &obj, float arg) { obj.print(a
 static const char* const HEADER = "\nExoskeleton © 2019 UAlbertaBiomed\n\n";
 
 Exoskeleton::Exoskeleton() {
-    init();
+    init(); // arduino header library
 
     Gains g;
     g.Kp = 10.0;
@@ -54,13 +54,12 @@ void Exoskeleton::run() {
         ch = wait_for_input();
         switch(ch){
             case 'c': 
-            calibration();
-            break;
-
+                calibration();
+                break;
             case 'q':
-            Serial.println("Quitting exoskeleton");
-            quit = 1;
-            break;            
+                Serial.println("Quitting exoskeleton");
+                quit = 1;
+                break;            
         }
     }
 }
@@ -120,13 +119,6 @@ void Exoskeleton::calibration() {
             calibrationError(command, outputVal);
         }
         Serial << command << " == " << outputVal << '\n';
-
-        command = "w axis" + i + ".encoder.config.cpr";
-        outputVal = readOdrive(command);
-        if(outputVal != "8192") {
-            calibrationError(command , outputVal);
-        }
-        Serial << command << " == " << outputVal << '\n';
     }
     // Save configuration
     odrive_serial << "odrv0.save_configuration()";
@@ -173,7 +165,7 @@ void Exoskeleton::calibration() {
         String outputVal;
 
         command = "w axis" + i + ".error";
-        outputVal = readOdrive(command);
+        outputVal = readOdrive(command); // do error check in here and put 2nd param 
         if (outputVal != 0) {
             calibrationError(command, outputVal);
         }
@@ -196,8 +188,6 @@ void Exoskeleton::calibration() {
         odrive_serial << "w axis" << i << ".config.startup_encoder_index_search " << "True" << '\n';
         // Similarily, save current motor calibration and avoid doing it again on bootup
         odrive_serial << "w axis" << i << ".motor.config.pre_calibrated " << "True" << '\n';
-
-
 
         requested_state = ODriveArduino::AXIS_STATE_CLOSED_LOOP_CONTROL;
         Serial << "Axis" << i << ": Requesting state " << requested_state << '\n';

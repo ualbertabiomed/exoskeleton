@@ -48,8 +48,8 @@ protected:
 	Gains gains;
 
 private:
-    SoftwareSerial odrive_serial;
-    ODriveArduino odrive;
+    SoftwareSerial *odrive_serial;
+    ODriveArduino *odrive;
 
 
 	const String HEADER = "\nExoskeleton © 2019 UAlbertaBiomed\n\n";
