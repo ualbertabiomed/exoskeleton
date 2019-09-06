@@ -1,4 +1,4 @@
-# Exoskeleton Project
+# ALberta EXoskeleton
 To design an upper body exoskeleton which would reduce the chance of repetitive strain injury and provide feedback on the users's posture.
 
 ## Getting started
