@@ -46,3 +46,6 @@ Arduino-Makefile/
 # Folders
 build/
 bin/
+
+# Autodocs
+docs/
