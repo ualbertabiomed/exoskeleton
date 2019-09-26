@@ -2,10 +2,6 @@
 #include <SoftwareSerial.h>
 #include <ODriveArduino.h>
 
-// Printing with stream operator
-template<class T> inline Print& operator <<(Print &obj,     T arg) { obj.print(arg);    return obj; }
-template<>        inline Print& operator <<(Print &obj, float arg) { obj.print(arg, 4); return obj; }
-
 // Serial to the ODrive
 SoftwareSerial odrive_serial(10, 11); //RX (ODrive TX), TX (ODrive RX)
 // Note: you must also connect GND on ODrive to GND on Arduino!
