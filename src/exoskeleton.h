@@ -20,32 +20,19 @@
 
 using namespace std;
 
-struct Gains {
-	double Kp;
-	double Ki;
-	double Kd;
-};
-
-class Exoskeleton {
+class Joint {
 
 protected:
-Gains gains;
 SoftwareSerial odrive_serial;
 ODriveArduino odrive;
 
 public:
 	Exoskeleton();
 	void run();
-    void calibration();
-	void write_odrive(String command);
-	void write_axis(int axis, String command);
-	void write_axis(int axis, String command, float val);
-	void write_terminal(String command, String val);
-	String read_odrive(String input);
-	void call_run_state(int axis, int requested_state, bool wait);
-	void check_odrive_calibration(int axis,String command, String expected_value);
-	void calibration_error(String command, String output);
-	char wait_for_input();
+    void calibrate(int motor_number);
+	void update();
+	void set_position();
+	void get_position();
 	double pid();
 	double set_point();
 	void loop();
