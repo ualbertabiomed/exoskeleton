@@ -11,13 +11,13 @@
  *
  */
 
-#include "exoskeleton.h"
+#include "joint.h"
 
 using namespace std;
 
 int main(){
-    Exoskeleton exo;
-    exo.run();
+    Joint j;
+    j.calibrate(0);
 
     return 0;
 }
