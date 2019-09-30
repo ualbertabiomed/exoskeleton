@@ -21,6 +21,8 @@ public:
     ODriveArduino(Stream& serial);
 
     // Commands
+    void Calibrate(int motor_number);
+    void Reset();
     void SetPosition(int motor_number, float position);
     void SetPosition(int motor_number, float position, float velocity_feedforward);
     void SetPosition(int motor_number, float position, float velocity_feedforward, float current_feedforward);
