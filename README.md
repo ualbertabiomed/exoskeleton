@@ -11,11 +11,13 @@ These instructions will get you a copy of the project up and running on your loc
 
 ### OS Independent Instructions
 #### Clone the exoskeleton repo locally
+
 ```
 git clone https://github.com/ualbertabiomed/exoskeleton.git
 ```
 ### Initial Windows and MacOS Instructions
 #### Clone the Arduino-Makefile repo locally
+
 ```
 git clone https://github.com/sudar/Arduino-Makefile.git
 ```
