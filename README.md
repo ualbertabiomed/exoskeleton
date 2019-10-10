@@ -1,6 +1,9 @@
 # ALberta EXoskeleton
 To design an upper body exoskeleton which would reduce the chance of repetitive strain injury and provide feedback on the users's posture.
 
+## Documentation
+http://docs.uabiomed.ca/
+
 ## Getting started
 These instructions will get you a copy of the project up and running on your local machine for development and testing purposes.
 
