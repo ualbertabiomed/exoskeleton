@@ -15,15 +15,43 @@ NOTE:
 Very difficult to test.  The time will vary slightly (i.e. by 0.00001 normally)
 This makes the end calculation vary a little as well (i.e. by 0.00001).
 Compounded over time, these differences will become larger.
+
+KNOWN ERRORS:
+DATA IS NOT TRANSFERRED BETWEEN THE STATES PROPERLY RIGHT NOW;
+THIS CAN BE SOLVED WITH GLOBAL VARIABLES, A COMMON CLASS GIVEN AS A
+PARAMETER TO ALL THE STATES, OR WITH USERDATA (UNSURE) LOCAL VARIABLES
 """
 
 class Wait4both(smach.State):
+    ''' The initial stage of the smach
+    Parameters:
+        smach.State:    Necessary to initialize the class as a state in the smach
+
+    The state is connected to wait4imu and wait4odrive.  At this state we are
+    waiting for input from both the imu and the odirve, we bias towards excepting
+    input from the imu first if the information arrives at the same time.
+    '''
+
     def __init__(self):
+        ''' Initialize the class and the state
+        Paramaters:
+            self (class):   The wait4both class object
+        Returns:
+            None
+        '''
         smach.State.__init__(self, outcomes=['done','wait4imu', 'wait4odrive'])
         return
 
     def execute(self, userdata):
+        ''' The function called when we switch to the wait4both state
+        Parameters:
+            self (class):   The wait4both class object
+            userdata    :   The local variables passed to the function
+        Returns:
+            String:         The name of the next state we are to move to
+        '''
         global shutdown_requested
+        print(type(userdata))
         self.wait_pub = rospy.Publisher('wait_channel', String, queue_size=10)
         self.imu_sub = rospy.Subscriber('imu_channel', Float32, self.imu_callback)
         self.odrive_sub = rospy.Subscriber('odrive_channel', Float32, self.odrive_callback)
@@ -32,6 +60,7 @@ class Wait4both(smach.State):
         rate = rospy.Rate(10) # 10hz
         msg = "in wait4both"
 
+        # Forever loop waiting for the state to change
         while not shutdown_requested:
             if self.imuVal != None:
                 unregisterSubs(self)
@@ -46,25 +75,49 @@ class Wait4both(smach.State):
         return 'done'
 
     def unregisterSubs(self):
-        self.wait_pub.unregister()
+        ''' unsubscribe to all the topics we subscribed to '''
         self.imu_sub.unregister()
         self.odrive_sub.unregister()
         return
 
     def imu_callback(self, data):
+        ''' The callback function for receiving input from the imu node '''
         self.imuVal = data.data
         return
 
     def odrive_callback(self, data):
+        ''' The callback function for receiving input from teh odrive node '''
         self.odriveVal = data.data
         return
 
 class Wait4imu(smach.State):
+    ''' One of the 2 states where we have one of two inputs necessary to comput PID
+    Parameters:
+        smach.State:    Necessary to initialize the class as a state in the smach
+
+    The state is connected to wait4both and pidcalc.  At this state we are
+    waiting for input from the imu.  We bias towards excepting input from the
+    imu first instead of timing out and returning to wait4both.
+    '''
+
     def __init__(self):
+        ''' Initialize the class and the state
+        Paramaters:
+            self (class):   The wait4imu class object
+        Returns:
+            None
+        '''
         smach.State.__init__(self, outcomes=['wait4both', 'pidcalc'])
         return
 
     def execute(self, userdata):
+        ''' The function called when we switch to the wait4imu state
+        Parameters:
+            self (class):   The wait4both class object
+            userdata    :   The local variables passed to the function
+        Returns:
+            String:         The name of the next state we are to move to
+        '''
         global shutdown_requested
         self.wait_pub = rospy.Publisher('wait_channel', String, queue_size=10)
         self.imu_sub = rospy.Subscriber('imu_channel', Float32, self.imu_callback)
@@ -73,6 +126,7 @@ class Wait4imu(smach.State):
         msg = "in wait4imu"
         startTime = rospy.time()
 
+        # Wait 5 seconds to receive input from imu, else return to the wait4both state
         while not shutdown_requested:
             if self.imuVal != None:
                 self.unregisterSubs()
@@ -87,30 +141,55 @@ class Wait4imu(smach.State):
         return 'done'
 
     def unregisterSubs(self):
+        ''' unsubscribe to all the topics we subscribed to '''
         self.wait_pub.unregister()
         self.imu_sub.unregister()
         return
 
     def imu_callback(self, data):
+        ''' The callback function for receiving input from the imu node '''
         self.imuVal = data.data
         return
 
 class Wait4odrive(smach.State):
+    ''' One of the 2 states where we have one of two inputs necessary to comput PID
+    Parameters:
+        smach.State:    Necessary to initialize the class as a state in the smach
+
+    The state is connected to wait4both and pidcalc.  At this state we are
+    waiting for input from the odrive.  We bias towards excepting input from the
+    odrive first instead of timing out and returning to wait4both.
+    '''
+
     def __init__(self):
+        ''' Initialize the class and the state
+        Paramaters:
+            self (class):   The wait4odrive class object
+        Returns:
+            None
+        '''
         smach.State.__init__(self, outcomes=['wait4both', 'pidcalc'])
         return
 
     def execute(self, userdata):
+        ''' The function called when we switch to the wait4odrive state
+        Parameters:
+            self (class):   The wait4odrive class object
+            userdata    :   The local variables passed to the function
+        Returns:
+            String:         The name of the next state we are to move to
+        '''
         global shutdown_requested
         self.wait_pub = rospy.Publisher('wait_channel', String, queue_size=10)
-        self.imu_sub = rospy.Subscriber('imu_channel', Float32, self.imu_callback)
-        self.imuVal = None
+        self.odrive_sub = rospy.Subscriber('odrive_channel', Float32, self.odrive_callback)
+        self.odriveVal = None
         rate = rospy.Rate(10) # 10hz
         msg = "in wait4odrive"
         startTime = rospy.time()
 
+        # Wait 5 seconds to receive input from odrive, else return to the wait4both state
         while not shutdown_requested:
-            if self.imuVal != None:
+            if self.odriveVal != None:
                 self.unregisterSubs()
                 return 'pidcalc'
             if rospy.time() > startTime + 5:
@@ -123,15 +202,25 @@ class Wait4odrive(smach.State):
         return 'done'
 
     def unregisterSubs(self):
+        ''' unsubscribe to all the topics we subscribed to '''
         self.wait_pub.unregister()
         self.imu_sub.unregister()
         return
 
-    def imu_callback(self, data):
-        self.imuVal = data.data
+    def odrive_callback(self, data):
+        ''' The callback function for receiving input from the imu node '''
+        self.odriveVal = data.data
         return
 
 class Pidcalc(smach.State):
+    ''' The state where we calculate PID
+    Parameters:
+        smach.State:    Necessary to initialize the class as a state in the smach
+
+    The state is connected to wait4both.  We calculate PID with the input
+    received from the imu and odrive, publish the result and return to wait4both
+    '''
+
     def __init__(self, Kp=0.001, Ki=0, Kd=0):
         ''' init the PID control, initialize all variables we will need
         Parameters:
@@ -158,9 +247,11 @@ class Pidcalc(smach.State):
 
     def execute(self, userdata):
         global shutdown_requested
-        self.stateSwitch = None
-        err = 0 # TODO: EDIT THIS
-        self.calcPID(self, err)
+        err = 0 # TODO: CALCULATE ERROR FROM USERDATA; OR SOMEHOW
+        result = self.calcPID(self, err) #TODO: PUSBLISH RESULT
+        self.pid_pub = rospy.Publisher('pid_channel', Float32, queue_size=10)
+        self.pid_pub.publish(result)
+        self.pid_pub.unregister()
         return 'wait4both'
 
     def setConstants(self, Kp, Ki, Kd):
