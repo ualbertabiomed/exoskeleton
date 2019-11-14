@@ -1,0 +1,14 @@
+<!-- This is a basic launch file written in XML code. So from now on this file will be executed when 'roslaunch' command is intiated. Basic review of the files:
+	- The node pkg refers to the ros package which contains the desired node files. It can also open files from different package, even though I have not experimented with that, but I am pretty sure.
+	- The type is the name of the node file (e.g joint_node)
+	- The name is a secondary name of the file which kind of acts like a duplicate name to avoid any conflicts between file names.
+	- This launch file belongs in the src/ in the package, typically it the launch has a extension of launch.
+-->
+
+<Launch>
+	<node pkg="package_name" type ="file_name1" name="name_of_node1" />
+	<node pkg="package_name" type ="file_name2" name="name_of_node2" />	
+	<!-- depending on how many nodes you want to open keep adding the above lines.-->
+</launch>
+
+<!-- Also it is not mandatory to have one launch, we can have multiple launch files. -->
