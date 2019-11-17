@@ -15,11 +15,6 @@ NOTE:
 Very difficult to test.  The time will vary slightly (i.e. by 0.00001 normally)
 This makes the end calculation vary a little as well (i.e. by 0.00001).
 Compounded over time, these differences will become larger.
-
-KNOWN ERRORS:
-DATA IS NOT TRANSFERRED BETWEEN THE STATES PROPERLY RIGHT NOW;
-THIS CAN BE SOLVED WITH GLOBAL VARIABLES, A COMMON CLASS GIVEN AS A
-PARAMETER TO ALL THE STATES, OR WITH USERDATA (UNSURE) LOCAL VARIABLES
 """
 
 class Wait4both(smach.State):
@@ -39,7 +34,8 @@ class Wait4both(smach.State):
         Returns:
             None
         '''
-        smach.State.__init__(self, outcomes=['done','wait4imu', 'wait4odrive'])
+        smach.State.__init__(self, outcomes=['done','wait4imu', 'wait4odrive'],
+                                output_keys=['imu_val', 'odrive_val'])
         return
 
     def execute(self, userdata):
@@ -63,9 +59,11 @@ class Wait4both(smach.State):
         # Forever loop waiting for the state to change
         while not shutdown_requested:
             if self.imuVal != None:
+                userdata.imu_val = self.imuVal
                 unregisterSubs(self)
                 return 'wait4odrive'
             if self.odriveVal != None:
+                userdata.odrive_val = self.odriveVal
                 unregisterSubs(self)
                 return 'wait4imu'
             self.wait_pub.publish(msg)
@@ -107,7 +105,9 @@ class Wait4imu(smach.State):
         Returns:
             None
         '''
-        smach.State.__init__(self, outcomes=['wait4both', 'pidcalc'])
+        smach.State.__init__(self, outcomes=['wait4both', 'pidcalc'],
+                                input_keys=['odrive_val'],
+                                output_keys=['imu_val', 'odrive_val'])
         return
 
     def execute(self, userdata):
@@ -129,6 +129,8 @@ class Wait4imu(smach.State):
         # Wait 5 seconds to receive input from imu, else return to the wait4both state
         while not shutdown_requested:
             if self.imuVal != None:
+                userdata.output_keys.odrive_val = userdata.input_keys.odrive_val
+                userdata.output_keys.imu_val = self.imuVal
                 self.unregisterSubs()
                 return 'pidcalc'
             if rospy.time() > startTime + 5:
@@ -168,7 +170,9 @@ class Wait4odrive(smach.State):
         Returns:
             None
         '''
-        smach.State.__init__(self, outcomes=['wait4both', 'pidcalc'])
+        smach.State.__init__(self, outcomes=['wait4both', 'pidcalc'],
+                                input_keys=['imu_val'],
+                                output_keys=['imu_val', 'odrive_val'])
         return
 
     def execute(self, userdata):
@@ -190,6 +194,8 @@ class Wait4odrive(smach.State):
         # Wait 5 seconds to receive input from odrive, else return to the wait4both state
         while not shutdown_requested:
             if self.odriveVal != None:
+                userdata.output_keys.imu_val = userdata.input_keys.imu_val
+                userdata.output_keys.odrive_val = self.odriveVal
                 self.unregisterSubs()
                 return 'pidcalc'
             if rospy.time() > startTime + 5:
@@ -221,7 +227,7 @@ class Pidcalc(smach.State):
     received from the imu and odrive, publish the result and return to wait4both
     '''
 
-    def __init__(self, Kp=0.001, Ki=0, Kd=0):
+    def __init__(self, constants):
         ''' init the PID control, initialize all variables we will need
         Parameters:
             Kp (float):     The value for the constant Kp, default to 0.001
@@ -231,14 +237,16 @@ class Pidcalc(smach.State):
         Returns:
             None
         '''
-        smach.State.__init__(self, outcomes=['wait4both'])
+        smach.State.__init__(self, outcomes=['wait4both'],
+                                input_keys=['imu_val', 'odrive_val'])
         self.err = None
         self.initTime = rospy.get_time()
         self.cTime = None
         self.duration = None
-        self.Kp = None
-        self.Ki = None
-        self.Kd = None
+        self.setConstants(constants[0], constants[1], constants[2])
+        # self.Kp = None
+        # self.Ki = None
+        # self.Kd = None
         self.err = None
         self.prevErr = None
         self.totalErr = 0
@@ -247,11 +255,10 @@ class Pidcalc(smach.State):
 
     def execute(self, userdata):
         global shutdown_requested
-        err = 0 # TODO: CALCULATE ERROR FROM USERDATA; OR SOMEHOW
-        result = self.calcPID(self, err) #TODO: PUSBLISH RESULT
+        self.err = userdata.input_keys.odrive_val - userdata.input_keys.imu_val
+        result = self.calcPID(self, self.err)
         self.pid_pub = rospy.Publisher('pid_channel', Float32, queue_size=10)
         self.pid_pub.publish(result)
-        self.pid_pub.unregister()
         return 'wait4both'
 
     def setConstants(self, Kp, Ki, Kd):
@@ -361,12 +368,11 @@ def testPID():
     return
 
 def main():
-    global button_start
     global shutdown_requested
-    button_start = False
     shutdown_requested = False
 
     rospy.init_node('pid_node')
+    constants = (0.55, 20000, 0.000005)
 
     # Create done outcome which will stop the state machine
     sm_pid = smach.StateMachine(outcomes=['DONE'])
@@ -382,7 +388,7 @@ def main():
         smach.StateMachine.add('WAIT4ODRIVE', Wait4odrive(),
                                transitions={'wait4both': 'WAIT4BOTH',
                                             'pidcalc': 'PIDCALC'})
-        smach.StateMachine.add('PIDCALC', Pidcalc(),
+        smach.StateMachine.add('PIDCALC', Pidcalc(constants),
                                transitions={'wait4both': 'WAIT4BOTH'})
 
     # Create and start the instrospection server - needed for smach_viewer
