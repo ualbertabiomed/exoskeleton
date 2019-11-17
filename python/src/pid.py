@@ -255,7 +255,7 @@ class Pidcalc(smach.State):
 
     def execute(self, userdata):
         global shutdown_requested
-        self.err = userdata.input_keys.odrive_val - userdata.input_keys.imu_val
+        self.err =  userdata.input_keys.imu_val - userdata.input_keys.odrive_val 
         result = self.calcPID(self, self.err)
         self.pid_pub = rospy.Publisher('pid_channel', Float32, queue_size=10)
         self.pid_pub.publish(result)
