@@ -5,24 +5,9 @@ import odrive.enums
 import odrive.utils
 import math
 import fibre
-
-AXIS_STATE_UNDEFINED = 0
-AXIS_STATE_IDLE = 1
-AXIS_STATE_STARTUP_SEQUENCE = 2
-AXIS_STATE_FULL_CALIBRATION_SEQUENCE = 3
-AXIS_STATE_MOTOR_CALIBRATION = 4
-AXIS_STATE_SENSORLESS_CONTROL = 5
-AXIS_STATE_ENCODER_INDEX_SEARCH = 6
-AXIS_STATE_ENCODER_OFFSET_CALIBRATION = 7
-AXIS_STATE_CLOSED_LOOP_CONTROL = 8
-AXIS_STATE_LOCKIN_SPIN = 9
-AXIS_STATE_ENCODER_DIR_FIND = 10
-
-CTRL_MODE_VOLTAGE_CONTROL = 0
-CTRL_MODE_CURRENT_CONTROL = 1
-CTRL_MODE_VELOCITY_CONTROL = 2
-CTRL_MODE_POSITION_CONTROL = 3
-CTRL_MODE_TRAJECTORY_CONTROL = 4
+import rospy
+from joint import *
+from std_msgs.msg import String, Float32
 
 LIVEPLOTTER_POSITION_ESTIMATE = 0
 LIVEPLOTTER_VELOCITY_ESTIMATE = 1
@@ -30,20 +15,35 @@ LIVEPLOTTER_TORQUE_ESTIMATE = 2
 LIVEPLOTTER_CURRENT_COMMANDED = 3
 LIVEPLOTTER_CURRENT_MEASURED = 4
 
-
-
-class Joint:
+class Joint():
     """Implementation of exoskeleton "joint" using odrive
 
     Atributes:
         my_drive: odrive object, see https://docs.odriverobotics.com/commands
         for commands/documentation.
     """
+    encoder_cpr = 8192
+    encoder_kv = 192
+
+    last_speed = 0 # TODO: Do we want these
+    last_pos = 0
+
 
     def __init__(self):
-
+        """
+        Make launch files so that we can say which axis is to use, if odrive
+        should be calibrated on startup, ...
+        """
         print("Finding an odrive...")
-        self.my_drive = odrive.find_any()
+        self.odrv = odrive.find_any()
+
+        if odrv:
+            self.axis0 = self.odrv.axis0
+            self.axis1 = self.odrv.axis1
+            self.encoder_cpr = self.axis0.encoder.config.cpr
+            # TODO: Determine and set these
+            self.ARM_LOWER_LIMIT = 0
+            self.ARM_UPPER_LIMIT = 8192
 
     def calibrate(self, debug):
         """<Brief Description>
@@ -58,6 +58,8 @@ class Joint:
 
         """
 
+
+
         ##################Calibration Phase 1 - Set Variables###################
         '''
         Based off https://docs.odriverobotics.com/
@@ -70,53 +72,53 @@ class Joint:
         #   Garage Power Supply: 3,3,5
         #   Turnigy ReaktorPro: 10, 10, 3 (Defaults)
         #
-        self.my_drive.axis0.motor.config.calibration_current = 10
-        self.my_drive.axis0.motor.config.current_lim = 10
-        self.my_drive.axis0.motor.config.resistance_calib_max_voltage = 3
-        self.my_drive.axis0.controller.config.vel_limit = 60000
+        self.axis0.motor.config.calibration_current = 10
+        self.axis0.motor.config.current_lim = 10
+        self.axis0.motor.config.resistance_calib_max_voltage = 3
+        self.axis0.controller.config.vel_limit = 20000
 
         # Display the changed parameters if in debug mode
         if debug:
-            print("Calibration current set to " + str(self.my_drive.axis0.motor.config.calibration_current))
-            print("Current limit set to " + str(self.my_drive.axis0.motor.config.current_lim))
-            print("Resistance_calib_max_voltage set to " + str(self.my_drive.axis0.motor.config.resistance_calib_max_voltage))
+            print("Calibration current set to " + str(self.axis0.motor.config.calibration_current))
+            print("Current limit set to " + str(self.axis0.motor.config.current_lim))
+            print("Resistance_calib_max_voltage set to " + str(self.axis0.motor.config.resistance_calib_max_voltage))
 
         print("Calibration Phase 1 Complete.")
         '''
-        At this point setting self.my_drive.axis0.requested_state = AXIS_STATE_FULL_CALIBRATION_SEQUENCE
+        At this point setting self.axis0.requested_state = AXIS_STATE_FULL_CALIBRATION_SEQUENCE
         should make the motor Beep, then spin one direction, then the other.
         Running dump_errors(odrv0) in the odrivetool should show no errors.
         '''
 
-        self.my_drive.axis0.requested_state = AXIS_STATE_FULL_CALIBRATION_SEQUENCE
+        self.set_requested_state(axis0, AXIS_STATE_FULL_CALIBRATION_SEQUENCE)
         time.sleep(20)
 
         #####################Calibration Phase 2 - Encoder######################
         print("\nPhase 2\n")
-        self.my_drive.axis0.encoder.config.use_index = True # Done
-        self.my_drive.axis0.requested_state = AXIS_STATE_ENCODER_INDEX_SEARCH
+        self.axis0.encoder.config.use_index = True # Done
+        self.set_requested_state(self.axis0, AXIS_STATE_ENCODER_INDEX_SEARCH)
         time.sleep(10)
-        self.my_drive.axis0.requested_state = AXIS_STATE_ENCODER_OFFSET_CALIBRATION # Error seems to happen here
+        self.set_requested_state(self.axis0, AXIS_STATE_ENCODER_OFFSET_CALIBRATION) # Error seems to happen here
         time.sleep(10)
         #
         if debug:
             # Should be 0
-            print("axis.error = " + str(self.my_drive.axis0.error) + " expected = 0")
+            print("axis.error = " + str(self.axis0.error) + " expected = 0")
             # Should be some integer, like -326 or 1364
-            print("offset = " + str(self.my_drive.axis0.encoder.config.offset) + " expected = Integer (+ or -)")
+            print("offset = " + str(self.axis0.encoder.config.offset) + " expected = Integer (+ or -)")
             # Should be 1 or -1
-            print("direction = " + str(self.my_drive.axis0.motor.config.direction) + " expected = -1 or +1" )
+            print("direction = " + str(self.axis0.motor.config.direction) + " expected = -1 or +1" )
 
         print("Setting encoder and motor pre-calibrated flags to True...The variable printed below should be true if the odrive agrees calibration worked")
-        self.my_drive.axis0.encoder.config.pre_calibrated = True
-        self.my_drive.axis0.motor.config.pre_calibrated = True
+        self.axis0.encoder.config.pre_calibrated = True
+        self.axis0.motor.config.pre_calibrated = True
         # Search for an index at startup, i.e. encoder should spin and stop at the same position
-        self.my_drive.axis0.config.startup_encoder_index_search = True
-        print("self.my_drive.axis0.encoder.config.pre_calibrated = ")
-        print(self.my_drive.axis0.encoder.config.pre_calibrated)
+        self.axis0.config.startup_encoder_index_search = True
+        print("self.axis0.encoder.config.pre_calibrated = ")
+        print(self.axis0.encoder.config.pre_calibrated)
 
-        if self.my_drive.axis0.encoder.config.pre_calibrated:
-            self.my_drive.save_configuration()
+        if self.axis0.encoder.config.pre_calibrated:
+            self.odrv.save_configuration()
             self.reboot()
             print("Done full calibration sequence - successful")
         else:
@@ -136,7 +138,7 @@ class Joint:
 
         """
         print("Reseting Configuration - Recalibration Required")
-        self.my_drive.erase_configuration()
+        self.odrv.erase_configuration()
         self.reboot()
 
     def reboot(self):
@@ -153,43 +155,55 @@ class Joint:
         """
         print("Rebooting and Reconnecting")
         try:
-            self.my_drive.reboot()
+            self.odrv.reboot()
         except fibre.ChannelBrokenException:
             print("Expected connection loss due to reboot")
-        self.my_drive = odrive.find_any()
+        self.odrv = odrive.find_any()
         print("Reconnection Successful")
 
     def dump_errors(self, clear=False):
         # Figure out the path to call functions from utils.py
-        odrive.utils.dump_errors(self.my_drive, clear)
+        odrive.utils.dump_errors(self.odrv, clear)
 
     def liveplotter(self, plot):
 
         if plot == 0:
-            odrive.utils.start_liveplotter(self.my_drive.axis0.encoder.pos_estimate)
+            odrive.utils.start_liveplotter(self.axis0.encoder.pos_estimate)
 
         if plot == 1:
-            odrive.utils.start_liveplotter(self.my_drive.axis0.encoder.vel_estimate)
+            odrive.utils.start_liveplotter(self.axis0.encoder.vel_estimate)
 
         if plot == 2:
-            odrive.utils.start_liveplotter(self.my_drive.axis0.motor.current_control.Iq_setpoint)
+            odrive.utils.start_liveplotter(self.axis0.motor.current_control.Iq_setpoint)
 
         if plot == 3:
-            odrive.utils.start_liveplotter(self.my_drive.axis0.motor.current_control.Iq_measured)
+            odrive.utils.start_liveplotter(self.axis0.motor.current_control.Iq_measured)
 
         if plot == 4:
             # INCOMPLETE: Figure out the KV for our motor
-            odrive.utils.start_liveplotter(self.my_drive.axis0.motor.current_control.Iq_measured*8.27/192)
+            odrive.utils.start_liveplotter(self.axis0.motor.current_control.Iq_measured*8.27/self.encoder_kv)
 
     def dump_motor_config(self):
         """
         TODO
         """
+        print(self.axis0.motor.config)
 
     def dump_encoder_config(self):
         """
         TODO
         """
+        print(self.axis0.motor.config)
+
+    @property
+    def ARM_LOWER_LIMIT(self):
+        """Get the lower position limit for the arm (counts)"""
+        return self.ARM_LOWER_LIMIT
+
+    @property
+    def ARM_UPPER_LIMIT(self):
+        """Get the upper position limit for the arm (counts)"""
+        return self.ARM_UPPER_LIMIT
 
     def set_global_current_limit(self, new_current_lim):
         """<Brief Description>
@@ -203,7 +217,7 @@ class Joint:
         Raises:
 
         """
-        self.my_drive.axis0.motor.config.current_lim = new_current_lim
+        self.axis0.motor.config.current_lim = new_current_lim
 
     def set_global_velocity_limit(self, new_velocity_lim):
         """<Brief Description>
@@ -217,7 +231,7 @@ class Joint:
         Raises:
 
         """
-        self.my_drive.axis0.controller.config.vel_limit = new_velocity_lim
+        self.axis0.controller.config.vel_limit = new_velocity_lim
 
     def get_global_current_limit(self):
         """<Brief Description>
@@ -231,7 +245,7 @@ class Joint:
         Raises:
 
         """
-        return self.my_drive.axis0.motor.config.current_lim
+        return self.axis0.motor.config.current_lim
 
     def get_global_velocity_limit(self):
         """<Brief Description>
@@ -245,9 +259,9 @@ class Joint:
         Raises:
 
         """
-        return self.my_drive.axis0.controller.config.vel_limit
+        return self.axis0.controller.config.vel_limit
 
-    def set_control_mode(self, mode):
+    def set_control_mode(self, axis, mode):
         """
         CTRL_MODE_VOLTAGE_CONTROL = 0
         CTRL_MODE_CURRENT_CONTROL = 1
@@ -256,11 +270,11 @@ class Joint:
         CTRL_MODE_TRAJECTORY_CONTROL = 4
         """
         if mode in range(6):
-            self.my_drive.axis0.controller.config.control_mode = mode
+            axis.controller.config.control_mode = mode
         else:
             print("Error: Invalid control mode")
 
-    def set_requested_state(self, state):
+    def set_requested_state(self, axis, state):
         """
         AXIS_STATE_UNDEFINED = 0
         AXIS_STATE_IDLE = 1
@@ -275,7 +289,7 @@ class Joint:
         AXIS_STATE_ENCODER_DIR_FIND = 10
         """
         if state in range(11):
-            self.my_drive.axis0.requested_state = state
+            axis.requested_state = state
         else:
             print("Error: Invalid requested state")
 
@@ -292,15 +306,15 @@ class Joint:
         Raises:
 
         """
-        self.my_drive.axis0.requested_state = AXIS_STATE_CLOSED_LOOP_CONTROL
-        self.my_drive.axis0.controller.config.control_mode = CTRL_MODE_POSITION_CONTROL
+        self.requested_state(self.axis0, AXIS_STATE_CLOSED_LOOP_CONTROL)
+        self.axis0.controller.config.control_mode = CTRL_MODE_POSITION_CONTROL
         print("Executing sinusoidal test move...")
         t0 = time.monotonic()
         while (time.monotonic() - t0) < 10:
             setpoint = 10000.0 * math.sin((time.monotonic() - t0)*2)
             if verbose:
                 print("goto " + str(int(setpoint)))
-            self.my_drive.axis0.controller.pos_setpoint = setpoint
+            self.axis0.controller.pos_setpoint = setpoint
             time.sleep(0.01)
 
     def set_position(self, position):
@@ -317,8 +331,9 @@ class Joint:
         Raises:
             None
         """
-        self.my_drive.axis0.controller.config.control_mode = CTRL_MODE_POSITION_CONTROL
-        self.my_drive.axis0.controller.pos_setpoint = position
+        self.axis0.controller.config.control_mode = CTRL_MODE_POSITION_CONTROL
+        if ()
+        self.axis0.controller.pos_setpoint = position
         print("Set position to: " + str(position) + " encoder units")
 
     def set_position_trajectory_control(target_vel, accel_limit, decel_limit):
@@ -361,10 +376,10 @@ class Joint:
         Raises:
 
         """
-        self.my_drive.axis0.requested_state = AXIS_STATE_CLOSED_LOOP_CONTROL
-        self.my_drive.axis0.controller.config.control_mode = CTRL_MODE_VELOCITY_CONTROL
+        self.set_requested_state(self.axis0, AXIS_STATE_CLOSED_LOOP_CONTROL)
+        self.axis0.controller.config.control_mode = CTRL_MODE_VELOCITY_CONTROL
         # Set the velocity [counts/s]
-        self.my_drive.axis0.controller.vel_setpoint = velocity
+        self.axis0.controller.vel_setpoint = velocity
         print("Set Velocity to: " + velocity + "counts/s (Non-Ramped)")
 
     def set_velocity_ramped(self, velocity, ramp_rate):
@@ -379,13 +394,13 @@ class Joint:
         Raises:
 
         """
-        self.my_drive.axis0.controller.config.control_mode = CTRL_MODE_VELOCITY_CONTROL
+        self.axis0.controller.config.control_mode = CTRL_MODE_VELOCITY_CONTROL
         # Set the velocity ramp rate (acceleration) [counts/s^2]
-        self.my_drive.axis0.controller.config.vel_ramp_rate = ramp_rate
+        self.axis0.controller.config.vel_ramp_rate = ramp_rate
         # Activate ramped velocty mode
-        self.my_drive.axis0.controller.vel_ramp_enable = True
+        self.axis0.controller.vel_ramp_enable = True
         # Set the target velocity to be ramped to
-        self.my_drive.axis0.controller.vel_ramp_target = velocity
+        self.axis0.controller.vel_ramp_target = velocity
         print("Set Velocity to: " + velocity + " counts/s , Ramp-Rate: " + ramp_rate + " counts/s^2")
 
     def set_current_control(self, current):
@@ -400,15 +415,15 @@ class Joint:
         Raises:
 
         """
-        self.my_drive.axis0.requested_state = AXIS_STATE_CLOSED_LOOP_CONTROL
-        self.my_drive.axis0.controller.config.control_mode = CTRL_MODE_CURRENT_CONTROL
+        self.set_requested_state(self.axis0, AXIS_STATE_CLOSED_LOOP_CONTROL)
+        self.axis0.controller.config.control_mode = CTRL_MODE_CURRENT_CONTROL
         # Set the current, proportional to torque
         # NOTE: There is no velocity limiting in current control mode, make
         # sure to not overrev the motor or exceed max speed for encode.
         # Uncomment below if you dare :)
         if (current >= 0 and current <= 23):
             print("Setting Current")
-            self.my_drive.axis0.controller.current_setpoint = current
+            self.axis0.controller.current_setpoint = current
         else:
             print("Error: Current value of outside of range")
 
@@ -424,7 +439,7 @@ class Joint:
         Raises:
 
         """
-        self.my_drive.axis0.controller.config.control_mode = CTRL_MODE_VOLTAGE_CONTROL
+        self.axis0.controller.config.control_mode = CTRL_MODE_VOLTAGE_CONTROL
 
     def get_position(self):
         """<Brief Description>
@@ -438,7 +453,7 @@ class Joint:
         Raises:
 
         """
-        return self.my_drive.axis0.encoder.pos_estimate
+        return self.axis0.encoder.pos_estimate
 
     def get_velocity(self):
         """<Brief Description>
@@ -452,45 +467,39 @@ class Joint:
         Raises:
 
         """
-        return self.my_drive.axis0.encoder.vel_estimate
+        return self.axis0.encoder.vel_estimate
 
-    def check_calibration_values(self):
-        """<Brief Description>
+    ################################ ROS - Main ################################
 
-        <Detailed Description>
+    def term_callback(self, data):
+        cmd = data.data
+        rospy.loginfo(cmd)
+        if (cmd == "c"):
+            j.calibrate(True)
+        elif (cmd == "t"):
+            j.sinusoidal_test_move(True)
+        elif (cmd == "g"):
+            rospy.loginfo(j.get_position())
+        else:
+            j.set_position(int(cmd))
 
-        Args:
-
-        Returns:
-
-        Raises:
-
+    def PID_callback(self, data):
         """
-        print("Checking Calibration Values")
+        TODO
+        """
 
-        print("Velocity set to " + str(self.my_drive.axis0.controller.config.vel_limit))
-        print("Current set to " + str(self.my_drive.axis0.motor.config.current_lim))
-        print("Encoder ser to " + str(self.my_drive.axis0.encoder.config.cpr))
 
-        '''
-        Encoder Calibration Values
-        '''
 
-        '''
-        Values indicating succesful calibration (or at least partially succesful):
-        Error: Sould be 0
-        Offset: Some positive or negative integer
-        Direction: 1 or -1
-        '''
-        print("my_drive.axis.error = " + str(self.my_drive.axis0.error))
-        print("my_drive.axis0.encoder.config.offset = " + str(self.my_drive.axis0.encoder.config.offset))
-        print("my_drive.axis0.motor.config.direction = " + str(self.my_drive.axis0.motor.config.direction))
-        print("Expected Value: error = 0, offset = Integer (+ or -), direction = -1 or 1.")
+    def listener(self):
+        rospy.init_node("ODrive_Node", anonymous=True)
+        rospy.Subscriber("term_channel", String, term_callback)
+        rospy.Subscriber("PID_channel", Float32, pid_callback)
+        self.PIDpub = rospy.Publisher("PID_channel", Float32, queue_size=10) # not sure what queue_size should be
+        self.rate = rospy.Rate(1) # should be smaller?
+        rospy.spin()
 
-        '''
-        End of calibration values
-        '''
-        print("my_drive.axis0.encoder.config.pre_calibrated=" + self.my_drive.axis0.encoder.config.pre_calibrated)
-        print("my_drive.axis0.config.startup_encoder_index_search=" + self.my_drive.axis0.config.startup_encoder_index_search)
-        print("my_drive.axis0.motor.config.pre_calibrated=" + self.my_drive.axis0.motor.config.pre_calibrated)
-        print("my_drive.axis0.requested_state=" + self.my_drive.axis0.requested_state)
+
+if name == "__main__":
+
+    j = Joint()
+    j.listener()
