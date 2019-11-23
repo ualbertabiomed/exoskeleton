@@ -477,11 +477,77 @@ class odrive_exo():
     def term_callback(self, data):
         cmd = data.data
         rospy.loginfo(cmd)
-        if (cmd == "c"):
-            j.calibrate(True)
-        elif (cmd == "t"):
+        cmd_length = len(cmd)
+
+        for i in cmd:
+            if (cmd[i] == "p"):
+                pos_val = cmd[(i+1):]
+                odrive.set_position(int(pos_val))
+                break
+            else:
+                rospy.loginfo("Invalid input")
+                break
+
+        for i in cmd:
+            if (cmd[i] == "c"):
+                odrive.calibrate(True)
+                break
+            else:
+                rospy.loginfo("Invalid input")
+                break
+
+        for i in cmd:
+            if (cmd[i] == "l"):
+                if (cmd[i+1] == "v"):
+                    vel_val = cmd[(i+2):]
+                    odrive.set_global_velocity_limit(int(vel_val))
+                    break
+                elif (cmd[i+1] == "c"):
+                    cur_val = cmd[(i+2):]
+                    odrive.set_global_current_limit(int(cur_val))
+                    break
+                else:
+                    rospy.loginfo("Invalid input")
+                    break
+            else:
+                rospy.loginfo("Invalid input")
+                break
+
+        for i in cmd:
+            if (cmd[i] == "f"):
+                if (cmd[i+1] == "m"):
+                    odrive.dump_motor_config()
+                    break
+                elif (cmd[i+1] == "e")
+                    odrive.dump_encoder_config()
+                    break
+                else:
+                    rospy.loginfo("Invalid input")
+                    break
+            else:
+                rospy.loginfo("Invalid input")
+                break
+
+        for i in cmd:
+            if (cmd[i] == "e"):
+                odrive.dump_errors()
+                break
+            else:
+                rospy.loginfo("Invalid input")
+                break
+
+        for i in cmd:
+            if (cmd[i] == "l"):
+
+        for i in cm
+
+        elif (cmd[0:2] == "co" or cmd[0:6] == "config"):
             j.sinusoidal_test_move(True)
-        elif (cmd == "g"):
+        elif (cmd[0] == "c" or cmd[0:3] == "cal"):
+
+            j.calibrate(True)
+        elif (cmd == "l"):
+
             rospy.loginfo(j.get_position())
         else:
             j.set_position(int(cmd))
