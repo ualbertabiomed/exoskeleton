@@ -6,7 +6,6 @@ import odrive.utils
 import math
 import fibre
 #import rospy
-from joint import *
 from std_msgs.msg import String, Float32
 
 LIVEPLOTTER_POSITION_ESTIMATE = 0
@@ -518,7 +517,7 @@ class odrive_exo():
                 if (cmd[i+1] == "m"):
                     odrive.dump_motor_config()
                     break
-                elif (cmd[i+1] == "e")
+                elif (cmd[i+1] == "e"):
                     odrive.dump_encoder_config()
                     break
                 else:
@@ -536,21 +535,6 @@ class odrive_exo():
                 rospy.loginfo("Invalid input")
                 break
 
-        for i in cmd:
-            if (cmd[i] == "l"):
-
-        for i in cm
-
-        elif (cmd[0:2] == "co" or cmd[0:6] == "config"):
-            j.sinusoidal_test_move(True)
-        elif (cmd[0] == "c" or cmd[0:3] == "cal"):
-
-            j.calibrate(True)
-        elif (cmd == "l"):
-
-            rospy.loginfo(j.get_position())
-        else:
-            j.set_position(int(cmd))
 
     def PID_callback(self, data):
         """
