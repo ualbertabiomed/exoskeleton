@@ -479,7 +479,7 @@ class odrive_exo():
         cmd_length = len(cmd)
 
         for i in range(len(cmd)):
-            if (i == "p"):
+            if (cmd[i] == "p"):
                 pos_val = cmd[(i+1):]
                 odrv.set_position(int(pos_val))
                 break
@@ -495,15 +495,17 @@ class odrive_exo():
                 rospy.loginfo("Invalid input")
                 break
 
-        for i in cmd:
-            if (i == "l"):
+        for i in range(0, len(cmd)):
+            if (cmd[i] == "l"):
                 if (cmd[i+1] == "v"):
                     vel_val = cmd[(i+2):]
-                    odrv.set_global_velocity_limit(int(vel_val))
+                    odrive.set_global_velocity_limit(int(vel_val))
+                    rospy.loginfo(odrive.set_global_velocity_limit(int(vel_val)))
                     break
                 elif (cmd[i+1] == "c"):
                     cur_val = cmd[(i+2):]
-                    odrv.set_global_current_limit(int(cur_val))
+                    odrive.set_global_current_limit(int(cur_val))
+                    rospy.loginfo(odrive.set_global_current_limit(int(cur_val)))
                     break
                 else:
                     rospy.loginfo("Invalid input")
@@ -512,13 +514,13 @@ class odrive_exo():
                 rospy.loginfo("Invalid input")
                 break
 
-        for i in cmd:
-            if (i == "f"):
+        for i in range(0,len(cmd)):
+            if (cmd[i] == "f"):
                 if (cmd[i+1] == "m"):
                     odrv.dump_motor_config()
                     break
-                elif (cmd[i+1] == "e"):
-                    odrv.dump_encoder_config()
+                elif (cmd[i+1] == "e")
+                    odrive.dump_encoder_config()
                     break
                 else:
                     rospy.loginfo("Invalid input")
