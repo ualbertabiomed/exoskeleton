@@ -5,7 +5,7 @@ from odrive.enums import *
 import odrive.utils
 import math
 import fibre
-#import rospy
+import rospy
 from std_msgs.msg import String, Float32
 
 LIVEPLOTTER_POSITION_ESTIMATE = 0
@@ -478,32 +478,32 @@ class odrive_exo():
         rospy.loginfo(cmd)
         cmd_length = len(cmd)
 
-        for i in cmd:
-            if (cmd[i] == "p"):
+        for i in range(len(cmd)):
+            if (i == "p"):
                 pos_val = cmd[(i+1):]
-                odrive.set_position(int(pos_val))
+                odrv.set_position(int(pos_val))
                 break
             else:
                 rospy.loginfo("Invalid input")
                 break
 
         for i in cmd:
-            if (cmd[i] == "c"):
-                odrive.calibrate(True)
+            if (i == "c"):
+                odrv.calibrate(True)
                 break
             else:
                 rospy.loginfo("Invalid input")
                 break
 
         for i in cmd:
-            if (cmd[i] == "l"):
+            if (i == "l"):
                 if (cmd[i+1] == "v"):
                     vel_val = cmd[(i+2):]
-                    odrive.set_global_velocity_limit(int(vel_val))
+                    odrv.set_global_velocity_limit(int(vel_val))
                     break
                 elif (cmd[i+1] == "c"):
                     cur_val = cmd[(i+2):]
-                    odrive.set_global_current_limit(int(cur_val))
+                    odrv.set_global_current_limit(int(cur_val))
                     break
                 else:
                     rospy.loginfo("Invalid input")
@@ -513,12 +513,12 @@ class odrive_exo():
                 break
 
         for i in cmd:
-            if (cmd[i] == "f"):
+            if (i == "f"):
                 if (cmd[i+1] == "m"):
-                    odrive.dump_motor_config()
+                    odrv.dump_motor_config()
                     break
                 elif (cmd[i+1] == "e"):
-                    odrive.dump_encoder_config()
+                    odrv.dump_encoder_config()
                     break
                 else:
                     rospy.loginfo("Invalid input")
@@ -529,7 +529,7 @@ class odrive_exo():
 
         for i in cmd:
             if (cmd[i] == "e"):
-                odrive.dump_errors()
+                odrv.dump_errors()
                 break
             else:
                 rospy.loginfo("Invalid input")
@@ -544,9 +544,9 @@ class odrive_exo():
 
 
     def listener(self):
-        rospy.init_node("odrive_node", anonymous=True)
-        rospy.Subscriber("term_channel", String, term_callback)
-        rospy.Subscriber("pid_channel", Float32, pid_callback)
+        rospy.init_node("odriv_node", anonymous=True)
+        rospy.Subscriber("term_channel", String, odrv.term_callback)
+        #rospy.Subscriber("pid_channel", Float32, odrive.pid_callback)
         self.PIDpub = rospy.Publisher("odrive_channel", Float32, queue_size=10) # not sure what queue_size should be
         self.rate = rospy.Rate(1) # should be smaller?
         rospy.spin()
@@ -554,5 +554,5 @@ class odrive_exo():
 
 if __name__ == "__main__":
 
-    odrive = odrive_exo()
-    odrive.listener()
+    odrv = odrive_exo()
+    odrv.listener()

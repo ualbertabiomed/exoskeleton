@@ -18,10 +18,10 @@ class terminal():
                	cmd = raw_input("Enter terminal command: ")
                 rospy.loginfo(cmd)
                 try:
-                    pub.publish(cmd)
+                    self.pub.publish(cmd)
                 except NameError:
                     print("ERROR: Did not publish; Incorect type")
-                rate.sleep()
+                self.rate.sleep()
 
 if __name__ == '__main__':
     t = terminal()
