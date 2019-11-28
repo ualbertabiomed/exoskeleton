@@ -482,18 +482,18 @@ class odrive_exo():
             if (cmd[i] == "p"):
                 pos_val = cmd[(i+1):]
                 odrv.set_position(int(pos_val))
-                break
+                return
             else:
                 rospy.loginfo("Invalid input")
-                break
+                return
 
         for i in cmd:
             if (i == "c"):
                 odrv.calibrate(True)
-                break
+                return
             else:
                 rospy.loginfo("Invalid input")
-                break
+                return
 
         for i in range(0, len(cmd)):
             if (cmd[i] == "l"):
@@ -501,41 +501,41 @@ class odrive_exo():
                     vel_val = cmd[(i+2):]
                     odrive.set_global_velocity_limit(int(vel_val))
                     rospy.loginfo(odrive.set_global_velocity_limit(int(vel_val)))
-                    break
+                    return
                 elif (cmd[i+1] == "c"):
                     cur_val = cmd[(i+2):]
                     odrive.set_global_current_limit(int(cur_val))
                     rospy.loginfo(odrive.set_global_current_limit(int(cur_val)))
-                    break
+                    return
                 else:
                     rospy.loginfo("Invalid input")
-                    break
+                    return
             else:
                 rospy.loginfo("Invalid input")
-                break
+                return
 
         for i in range(0,len(cmd)):
             if (cmd[i] == "f"):
                 if (cmd[i+1] == "m"):
                     odrv.dump_motor_config()
-                    break
-                elif (cmd[i+1] == "e")
+                    return
+                elif (cmd[i+1] == "e"):
                     odrive.dump_encoder_config()
-                    break
+                    return
                 else:
                     rospy.loginfo("Invalid input")
-                    break
+                    return
             else:
                 rospy.loginfo("Invalid input")
-                break
+                return
 
         for i in cmd:
-            if (cmd[i] == "e"):
+            if (i == "e"):
                 odrv.dump_errors()
-                break
+                return
             else:
                 rospy.loginfo("Invalid input")
-                break
+                return
 
 
     def PID_callback(self, data):
