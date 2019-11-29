@@ -472,71 +472,106 @@ class odrive_exo():
         return self.axis0.encoder.vel_estimate
 
     ################################ ROS - Main ################################
-
-    def term_callback(self, data):
-        cmd = data.data
-        rospy.loginfo(cmd)
-        cmd_length = len(cmd)
-
+    def check_position(cmd):
         for i in range(len(cmd)):
             if (cmd[i] == "p"):
                 pos_val = cmd[(i+1):]
                 odrv.set_position(int(pos_val))
+                return 0
                 break
             else:
                 rospy.loginfo("Invalid input")
+                return -1
                 break
 
+    def check_calibration(cmd):
         for i in cmd:
             if (i == "c"):
                 odrv.calibrate(True)
+                return 0
                 break
             else:
                 rospy.loginfo("Invalid input")
+                return -1
                 break
 
+    def check_set_velocity(cmd):
         for i in range(0, len(cmd)):
             if (cmd[i] == "l"):
                 if (cmd[i+1] == "v"):
                     vel_val = cmd[(i+2):]
                     odrive.set_global_velocity_limit(int(vel_val))
                     rospy.loginfo(odrive.set_global_velocity_limit(int(vel_val)))
+                    return 
                     break
                 elif (cmd[i+1] == "c"):
                     cur_val = cmd[(i+2):]
                     odrive.set_global_current_limit(int(cur_val))
                     rospy.loginfo(odrive.set_global_current_limit(int(cur_val)))
+                    return 0
                     break
                 else:
                     rospy.loginfo("Invalid input")
+                    return -1
                     break
             else:
                 rospy.loginfo("Invalid input")
+                return -1
                 break
+
+    def check_motor_config(cmd):
 
         for i in range(0,len(cmd)):
             if (cmd[i] == "f"):
                 if (cmd[i+1] == "m"):
                     odrv.dump_motor_config()
+                    return 0
                     break
-                elif (cmd[i+1] == "e")
+                elif (cmd[i+1] == "e"):
                     odrive.dump_encoder_config()
+                    return 0
                     break
                 else:
                     rospy.loginfo("Invalid input")
                     break
+                    return -1
             else:
                 rospy.loginfo("Invalid input")
+                return -1
                 break
 
+    def check_error(cmd):
         for i in cmd:
-            if (cmd[i] == "e"):
+            if (i == "e"):
                 odrv.dump_errors()
+                return 0
                 break
             else:
                 rospy.loginfo("Invalid input")
+                return -1
                 break
 
+    def term_callback(self, data):
+        cmd = data.data
+        rospy.loginfo(cmd)
+        cmd_length = len(cmd)
+        response = -1
+
+        cmd = cmd.strip(" ")
+
+        if (response = -1):
+            response = check_position(cmd)
+        elif (response = -1):
+            response = check_calibration(cmd)
+        elif (response = -1):
+            response = check_set_velocity(cmd)
+        elif (response = -1):
+            response = check_motor_config(cmd)
+        elif (response = -1):
+            response = check_error(cmd)
+        else:
+            rospy.loginfo("Undefined error")
+        
 
     def PID_callback(self, data):
         """
