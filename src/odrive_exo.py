@@ -4,6 +4,7 @@ import odrive
 from odrive.enums import *
 import odrive.utils
 import math
+from math_conversion import *
 import fibre
 import rospy
 from std_msgs.msg import String, Float32
@@ -320,7 +321,7 @@ class odrive_exo():
             time.sleep(0.01)
 
     def set_position(self, position):
-        r"""Set the position of motor, position is in encoder units.
+        """Set the position of motor, position is in encoder units.
 
         <Detailed Description>
 
@@ -598,21 +599,22 @@ class odrive_exo():
             response = check_error(cmd)
         else:
             rospy.loginfo("Undefined error")
-        
 
     def PID_callback(self, data):
-        """
-        TODO
-        """
-
-
+        pid_val = data.data
+        rospy.login(pid_val)
 
     def listener(self):
         rospy.init_node("odriv_node", anonymous=True)
         rospy.Subscriber("term_channel", String, odrv.term_callback)
-        #rospy.Subscriber("pid_channel", Float32, odrive.pid_callback)
+        rospy.Subscriber("pid_channel", Float32, odrive.pid_callback)
         self.PIDpub = rospy.Publisher("odrive_channel", Float32, queue_size=10) # not sure what queue_size should be
         self.rate = rospy.Rate(1) # should be smaller?
+
+        angle_position_val = convert_counts_to_angle(get_position())
+
+        self.PIDpub.publish(angle_position_val)
+
         rospy.spin()
 
 
