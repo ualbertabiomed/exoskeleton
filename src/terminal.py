@@ -15,12 +15,12 @@ class terminal():
             rospy.loginfo("Type this following strings to execute certain command:\nposition <val>: p<val>\nconfigs<motor/encoder>: f<m/e>\nlimit <vel/cur> <val> = l<v/c><val>\ncalibration = c\nerrors : e\n")
             while not rospy.is_shutdown():
                 #cmd = raw_input(self.main_menu)
-               	cmd = raw_input("Enter terminal command: ")
+                cmd = raw_input("Enter terminal command: ")
                 rospy.loginfo(cmd)
                 try:
                     self.pub.publish(cmd)
                 except NameError:
-                    print("ERROR: Did not publish; Incorect type")
+                    print("ERROR: Did not publish; Incorrect type")
                 self.rate.sleep()
 
 if __name__ == '__main__':
