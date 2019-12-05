@@ -483,21 +483,12 @@ class odrive_exo():
             else:
                 rospy.loginfo("Invalid input")
                 return -1
-                break
-            else:
-                rospy.loginfo("Invalid input")
-                return -1
 
     def check_calibration(cmd):
         for i in cmd:
             if (i == "c"):
                 odrv.calibrate(True)
                 return 0
-                break
-            else:
-                rospy.loginfo("Invalid input")
-                return -1
-                break
             else:
                 rospy.loginfo("Invalid input")
                 return -1
@@ -521,17 +512,6 @@ class odrive_exo():
                     rospy.loginfo("Invalid input")
                     return -1
                     break
-            else:
-                rospy.loginfo("Invalid input")
-                return -1
-                break
-                    return
-                else:
-                    rospy.loginfo("Invalid input")
-                    return
-            else:
-                rospy.loginfo("Invalid input")
-                return
 
     def check_motor_config(cmd):
 
@@ -540,44 +520,21 @@ class odrive_exo():
                 if (cmd[i+1] == "m"):
                     odrv.dump_motor_config()
                     return 0
-                    break
                 elif (cmd[i+1] == "e"):
                     odrive.dump_encoder_config()
                     return 0
-                    break
                 else:
                     rospy.loginfo("Invalid input")
-                    break
                     return -1
-            else:
-                rospy.loginfo("Invalid input")
-                return -1
-                break
-                    return
-                elif (cmd[i+1] == "e"):
-                    odrive.dump_encoder_config()
-                    return
-                else:
-                    rospy.loginfo("Invalid input")
-                    return
-            else:
-                rospy.loginfo("Invalid input")
-                return
 
     def check_error(cmd):
         for i in cmd:
             if (i == "e"):
                 odrv.dump_errors()
                 return 0
-                break
             else:
                 rospy.loginfo("Invalid input")
                 return -1
-                break
-                return
-            else:
-                rospy.loginfo("Invalid input")
-                return
 
     def term_callback(self, data):
         cmd = data.data
@@ -587,15 +544,15 @@ class odrive_exo():
 
         cmd = cmd.strip(" ")
 
-        if (response = -1):
+        if (response == -1):
             response = check_position(cmd)
-        elif (response = -1):
+        elif (response == -1):
             response = check_calibration(cmd)
-        elif (response = -1):
+        elif (response == -1):
             response = check_set_velocity(cmd)
-        elif (response = -1):
+        elif (response == -1):
             response = check_motor_config(cmd)
-        elif (response = -1):
+        elif (response == -1):
             response = check_error(cmd)
         else:
             rospy.loginfo("Undefined error")
