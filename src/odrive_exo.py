@@ -477,11 +477,13 @@ class odrive_exo():
         cmd_data = cmd[1:]
         if (cmd_code == "v"):
             odrive.set_global_velocity_limit(int(cmd_data))
-            rospy.loginfo(odrive.set_global_velocity_limit(int(cmd_data)))
+            # TODO: why is this being set twice
+            #rospy.loginfo(odrive.set_global_velocity_limit(int(cmd_data)))
             return 0
         elif (cmd_code == "c"):
             odrive.set_global_current_limit(int(cmd_data))
-            rospy.loginfo(odrive.set_global_current_limit(int(cmd_data)))
+            # TODO: why is this being set twice
+            #rospy.loginfo(odrive.set_global_current_limit(int(cmd_data)))
             return 0
         else:
             rospy.loginfo("Invalid input")
