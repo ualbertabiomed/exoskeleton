@@ -12,7 +12,7 @@ class terminal():
             rospy.init_node("P", anonymous=True)
             self.pub = rospy.Publisher("term_channel", String, queue_size=10)
             self.rate = rospy.Rate(1)
-            rospy.loginfo("Type this following strings to execute certain command:\nposition <val>: p<val>\nconfigs<motor/encoder>: f<m/e>\nlimit <vel/cur> <val> = l<v/c><val>\ncalibration = c\nerrors : e\n")
+            rospy.loginfo("Type this following strings to execute certain command:\nposition <val>: p<val>\nconfigs<motor/encoder>: f<m/e>\nlimit <vel/cur> <val> = l<v/c><val>\ncalibration<full/user-driven-index> = c <f/u> \nerrors : e\n")
             while not rospy.is_shutdown():
                 #cmd = raw_input(self.main_menu)
                 cmd = raw_input("Enter terminal command: ")
