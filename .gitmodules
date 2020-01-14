@@ -1,0 +1,3 @@
+[submodule "lib/ODrive"]
+	path = lib/ODrive
+	url = git@github.com:madcowswe/ODrive.git
