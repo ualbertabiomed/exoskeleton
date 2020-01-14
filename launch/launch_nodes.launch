@@ -5,10 +5,7 @@
 	- This launch file belongs in the src/ in the package, typically the launch file has a extension of launch.
 -->
 
-<Launch>
-	<node pkg="package_name" type ="file_name1" name="name_of_node1" />
-	<node pkg="package_name" type ="file_name2" name="name_of_node2" />	
-	<!-- depending on how many nodes you want to open keep adding the above lines.-->
+<launch>
+	<node pkg="exoskeleton" type="odrive_exo.py" name="alex" />
+	<node pkg="exoskeleton" type="terminal.py" name="user_interface" />	
 </launch>
-
-<!-- Also it is not mandatory to have one launch file, we can have multiple launch files. -->
