@@ -14,7 +14,7 @@ Based on your operating system, follow the guides below to install the Arduino I
 #### Clone the exoskeleton repo locally
 
 ```
-git clone https://github.com/ualbertabiomed/exoskeleton.git
+git clone https://github.com/ualbertabiomed/exoskeleton.git --recursive
 ```
 ### Initial Windows and MacOS Instructions
 #### Clone the Arduino-Makefile repo locally
