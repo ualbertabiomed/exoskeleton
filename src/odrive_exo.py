@@ -4,6 +4,7 @@ import odrive
 from odrive.enums import *
 import odrive.utils
 import math
+from math_conversion import *
 import fibre
 import rospy
 from std_msgs.msg import String, Float32
@@ -35,6 +36,7 @@ class odrive_exo():
         """
         print("Finding an odrive...")
         self.odrv = odrive.find_any()
+        print("Found an odrive...")
 
         if self.odrv:
             self.axis0 = self.odrv.axis0
@@ -46,19 +48,11 @@ class odrive_exo():
 
     def calibrate(self, debug):
         """<Brief Description>
-
         <Detailed Description>
-
         Args:
-
         Returns:
-
         Raises:
-
         """
-
-
-
         ##################Calibration Phase 1 - Set Variables###################
         '''
         Based off https://docs.odriverobotics.com/
@@ -320,7 +314,7 @@ class odrive_exo():
             time.sleep(0.01)
 
     def set_position(self, position):
-        r"""Set the position of motor, position is in encoder units.
+        """Set the position of motor, position is in encoder units.
 
         <Detailed Description>
 
@@ -334,7 +328,6 @@ class odrive_exo():
             None
         """
         self.axis0.controller.config.control_mode = CTRL_MODE_POSITION_CONTROL
-        #if ()
         self.axis0.controller.pos_setpoint = position
         print("Set position to: " + str(position) + " encoder units")
 
@@ -472,87 +465,90 @@ class odrive_exo():
         return self.axis0.encoder.vel_estimate
 
     ################################ ROS - Main ################################
+    def check_position(self, cmd):
+        self.set_position(int(cmd))
+
+    def check_calibration(self, cmd):
+        # TODO: only do full calibration if not pre_calibrated
+        odrv.calibrate(True)
+
+    def check_set_velocity(self, cmd):
+        cmd_code = cmd[0]
+        cmd_data = cmd[1:]
+        if (cmd_code == "v"):
+            odrive.set_global_velocity_limit(int(cmd_data))
+            rospy.loginfo(odrive.set_global_velocity_limit(int(cmd_data)))
+            return 0
+        elif (cmd_code == "c"):
+            odrive.set_global_current_limit(int(cmd_data))
+            rospy.loginfo(odrive.set_global_current_limit(int(cmd_data)))
+            return 0
+        else:
+            rospy.loginfo("Invalid input")
+            return -1
+
+    def check_motor_config(self, cmd):
+        if (cmd[i] == "m"):
+            odrv.dump_motor_config()
+            return 0
+        elif (cmd[i] == "e"):
+            odrive.dump_encoder_config()
+            return 0
+        else:
+            rospy.loginfo("Invalid input")
+            return -1
+
+    def check_error(self, cmd):
+        odrv.dump_errors()
+        return 0
 
     def term_callback(self, data):
-        cmd = data.data
-        rospy.loginfo(cmd)
-        cmd_length = len(cmd)
+        cmd_data = data.data.strip()
+        rospy.loginfo(cmd_data)
+        cmd_length = len(cmd_data)
+        response = -1
 
-        for i in range(len(cmd)):
-            if (cmd[i] == "p"):
-                pos_val = cmd[(i+1):]
-                odrv.set_position(int(pos_val))
-                return
-            else:
-                rospy.loginfo("Invalid input")
-                return
+        cmd = cmd_data[0]
+        args = cmd_data[1:].strip()
 
-        for i in cmd:
-            if (i == "c"):
-                odrv.calibrate(True)
-                return
-            else:
-                rospy.loginfo("Invalid input")
-                return
+        print("Got command: {} with data: {}".format(cmd, args))
 
-        for i in range(0, len(cmd)):
-            if (cmd[i] == "l"):
-                if (cmd[i+1] == "v"):
-                    vel_val = cmd[(i+2):]
-                    odrive.set_global_velocity_limit(int(vel_val))
-                    rospy.loginfo(odrive.set_global_velocity_limit(int(vel_val)))
-                    return
-                elif (cmd[i+1] == "c"):
-                    cur_val = cmd[(i+2):]
-                    odrive.set_global_current_limit(int(cur_val))
-                    rospy.loginfo(odrive.set_global_current_limit(int(cur_val)))
-                    return
-                else:
-                    rospy.loginfo("Invalid input")
-                    return
-            else:
-                rospy.loginfo("Invalid input")
-                return
+        if (cmd == "p"):
+            response = self.check_position(args)
+        elif (cmd == "c"):
+            response = self.check_calibration(args)
+        elif (cmd == "v"):
+            response = self.check_set_velocity(args)
+        elif (cmd == "f"):
+            response = self.check_motor_config(args)
+        elif (cmd == "e"):
+            response = self.check_error(args)
+        else:
+            rospy.loginfo("Undefined error")
 
-        for i in range(0,len(cmd)):
-            if (cmd[i] == "f"):
-                if (cmd[i+1] == "m"):
-                    odrv.dump_motor_config()
-                    return
-                elif (cmd[i+1] == "e"):
-                    odrive.dump_encoder_config()
-                    return
-                else:
-                    rospy.loginfo("Invalid input")
-                    return
-            else:
-                rospy.loginfo("Invalid input")
-                return
+    # TODO: til PID is integrated this is not needed
+    #def PID_callback(self, data):
+        #pid_val = data.data
+        #rospy.loginfo(pid_val)
 
-        for i in cmd:
-            if (i == "e"):
-                odrv.dump_errors()
-                return
-            else:
-                rospy.loginfo("Invalid input")
-                return
-
-
-    def PID_callback(self, data):
-        """
-        TODO
-        """
-
-
+    def imu_callback(self, data):
+        imu_val = data.data
+        rospy.loginfo(imu_val)
 
     def listener(self):
         rospy.init_node("odriv_node", anonymous=True)
         rospy.Subscriber("term_channel", String, odrv.term_callback)
-        #rospy.Subscriber("pid_channel", Float32, odrive.pid_callback)
+        rospy.Subscriber("chatter", Float32, odrv.imu_callback)
+        # TODO: til PID is integrated this is not needed
+        # rospy.Subscriber("pid_channel", Float32, odrive.pid_callback)
         self.PIDpub = rospy.Publisher("odrive_channel", Float32, queue_size=10) # not sure what queue_size should be
         self.rate = rospy.Rate(1) # should be smaller?
-        rospy.spin()
 
+        self.angle_position_val = convert_counts_to_angle(self.get_position())
+
+        self.PIDpub.publish(angle_position_val)
+
+        rospy.spin()
 
 if __name__ == "__main__":
 
