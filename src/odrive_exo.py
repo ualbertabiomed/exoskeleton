@@ -496,7 +496,8 @@ class odrive_exo():
     ################################ ROS - Main ################################
 
     def check_position(self, cmd):
-        odrv.set_position(int(cmd))
+        if cmd != '':
+            odrv.set_position(int(cmd))
         self.TERMpub.publish("cp" + str(odrv.get_position()))
         self.TERMpub.publish("tp" + str(odrv.axis0.controller.pos_setpoint))
 
