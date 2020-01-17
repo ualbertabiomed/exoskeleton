@@ -578,12 +578,11 @@ class odrive_exo():
         self.PIDpub = rospy.Publisher("odrive_channel", Float32, queue_size=10) # not sure what queue_size should be
         self.rate = rospy.Rate(1) # should be smaller?
 
-        angle_position_val = convert_counts_to_angle(self.get_position())
+        self.angle_position_val = convert_counts_to_angle(self.get_position())
 
         self.PIDpub.publish(angle_position_val)
 
         rospy.spin()
-
 
 if __name__ == "__main__":
 
