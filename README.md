@@ -168,6 +168,6 @@ Hat tip to anyone whose code was used, inspiration, references, etc.
 
 ## Legacy
 The legacy code folder was removed as of commit
-a36a24df2f4bcaecfa03a197b8b9ec66118a99ba
+[a36a24df2f4bcaecfa03a197b8b9ec66118a99ba](https://github.com/ualbertabiomed/exoskeleton/commit/a36a24df2f4bcaecfa03a197b8b9ec66118a99ba)
 
 
