@@ -165,3 +165,9 @@ This project is licensed under the MIT license        .
 
 ## Acknowledgements
 Hat tip to anyone whose code was used, inspiration, references, etc.
+
+## Legacy
+The legacy code folder was removed as of commit
+a36a24df2f4bcaecfa03a197b8b9ec66118a99ba
+
+
