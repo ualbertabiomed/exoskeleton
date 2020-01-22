@@ -393,6 +393,10 @@ class odrive_exo():
         pid_val = data.data
         rospy.login(pid_val)
 
+    def imu_callback(self, data):
+        imu_val = data.data
+        rospy.loginfo(imu_val)
+
     def listener(self):
         rospy.init_node("odriv_node", anonymous=True)
         rospy.Subscriber("term_channel", String, odrv.term_callback)
@@ -400,6 +404,7 @@ class odrive_exo():
         # TODO: til PID is integrated this is not needed
         # rospy.Subscriber("pid_channel", Float32, odrive.pid_callback)
         self.PIDpub = rospy.Publisher("odrive_channel", Float32, queue_size=10) # not sure what queue_size should be
+        rospy.Subscriber("imu_input", Float32, odrv.imu_callback)
         self.rate = rospy.Rate(1) # should be smaller?
 
         angle_position_val = convert_counts_to_angle(self.get_position())
