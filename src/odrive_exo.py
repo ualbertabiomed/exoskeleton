@@ -46,6 +46,45 @@ class odrive_exo():
             #self.ARM_LOWER_LIMIT = 0
             #self.ARM_UPPER_LIMIT = 8192
 
+        self.TERMpub = rospy.Publisher("odrive_info", String, queue_size = 10)
+        # TODO: til PID is integrated this is not needed
+        # rospy.Subscriber("pid_channel", Float32, odrive.pid_callback)
+        self.PIDpub = rospy.Publisher("odrive_channel", Float32, queue_size=10) # not sure what queue_size should be
+        rospy.Subscriber("term_channel", String, odrv.term_callback)
+        rospy.Subscriber("imu_input", Float32, odrv.imu_callback)
+
+    def term_callback(self, data):
+        cmd_data = data.data.strip()
+        rospy.loginfo(cmd_data)
+        cmd_length = len(cmd_data)
+        response = -1
+
+        cmd = cmd_data[0]
+        args = cmd_data[1:].strip()
+
+        print("Got command: {} with data: {}".format(cmd, args))
+
+        if (cmd == "p"):
+            response = self.set_motor_position(args)
+        elif (cmd == "c"):
+            response = self.start_calibration(args)
+        elif (cmd == "l"):
+            response = self.set_limit(args)
+        elif (cmd == "f"):
+            response = self.print_motor_config(args)
+        elif (cmd == "e"):
+            response = self.print_error(args)
+        else:
+            rospy.loginfo("Undefined error")
+
+    def PID_callback(self, data):
+        pid_val = data.data
+        rospy.login(pid_val)
+
+    def imu_callback(self, data):
+        imu_val = data.data
+        rospy.loginfo(imu_val)
+
     def auto_calibrate(self, debug):
         """<Brief Description>
         <Detailed Description>
@@ -365,56 +404,15 @@ class odrive_exo():
         odrv.dump_errors()
         return 0
 
-    def term_callback(self, data):
-        cmd_data = data.data.strip()
-        rospy.loginfo(cmd_data)
-        cmd_length = len(cmd_data)
-        response = -1
-
-        cmd = cmd_data[0]
-        args = cmd_data[1:].strip()
-
-        print("Got command: {} with data: {}".format(cmd, args))
-
-        if (cmd == "p"):
-            response = self.set_motor_position(args)
-        elif (cmd == "c"):
-            response = self.start_calibration(args)
-        elif (cmd == "l"):
-            response = self.set_limit(args)
-        elif (cmd == "f"):
-            response = self.print_motor_config(args)
-        elif (cmd == "e"):
-            response = self.print_error(args)
-        else:
-            rospy.loginfo("Undefined error")
-
-    def PID_callback(self, data):
-        pid_val = data.data
-        rospy.login(pid_val)
-
-    def imu_callback(self, data):
-        imu_val = data.data
-        rospy.loginfo(imu_val)
-
-    def listener(self):
-        rospy.init_node("odriv_node", anonymous=True)
-        rospy.Subscriber("term_channel", String, odrv.term_callback)
-        self.TERMpub = rospy.Publisher("odrive_info", String, queue_size = 10)
-        # TODO: til PID is integrated this is not needed
-        # rospy.Subscriber("pid_channel", Float32, odrive.pid_callback)
-        self.PIDpub = rospy.Publisher("odrive_channel", Float32, queue_size=10) # not sure what queue_size should be
-        rospy.Subscriber("imu_input", Float32, odrv.imu_callback)
-        self.rate = rospy.Rate(1) # should be smaller?
-
+    def loop(self):
         angle_position_val = convert_counts_to_angle(self.get_position())
-
         self.PIDpub.publish(angle_position_val)
-
-        rospy.spin()
 
 
 if __name__ == "__main__":
-
+    rospy.init_node("odriv_node", anonymous=True)
     odrv = odrive_exo()
-    odrv.listener()
+    while (True):
+        odrv.loop()
+        rospy.spin()
+    
