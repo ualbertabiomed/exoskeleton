@@ -161,7 +161,7 @@ Explain how to run the automated tests for this system.
 Break down into end to end tests: Explain what thest tests test and why.
        .
 ## License
-This project is licensed under ...        .
+This project is licensed under the MIT license        .
 
 ## Acknowledgements
 Hat tip to anyone whose code was used, inspiration, references, etc.
