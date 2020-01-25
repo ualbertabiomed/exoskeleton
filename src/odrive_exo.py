@@ -46,7 +46,46 @@ class odrive_exo():
             #self.ARM_LOWER_LIMIT = 0
             #self.ARM_UPPER_LIMIT = 8192
 
-    def calibrate(self, debug):
+        self.TERMpub = rospy.Publisher("odrive_info", String, queue_size = 10)
+        # TODO: til PID is integrated this is not needed
+        # rospy.Subscriber("pid_channel", Float32, odrive.pid_callback)
+        self.PIDpub = rospy.Publisher("odrive_channel", Float32, queue_size=10) # not sure what queue_size should be
+        rospy.Subscriber("term_channel", String, odrv.term_callback)
+        rospy.Subscriber("imu_input", Float32, odrv.imu_callback)
+
+    def term_callback(self, data):
+        cmd_data = data.data.strip()
+        rospy.loginfo(cmd_data)
+        cmd_length = len(cmd_data)
+        response = -1
+
+        cmd = cmd_data[0]
+        args = cmd_data[1:].strip()
+
+        print("Got command: {} with data: {}".format(cmd, args))
+
+        if (cmd == "p"):
+            response = self.set_motor_position(args)
+        elif (cmd == "c"):
+            response = self.start_calibration(args)
+        elif (cmd == "l"):
+            response = self.set_limit(args)
+        elif (cmd == "f"):
+            response = self.print_motor_config(args)
+        elif (cmd == "e"):
+            response = self.print_error(args)
+        else:
+            rospy.loginfo("Undefined error")
+
+    def PID_callback(self, data):
+        pid_val = data.data
+        rospy.login(pid_val)
+
+    def imu_callback(self, data):
+        imu_val = data.data
+        rospy.loginfo(imu_val)
+
+    def auto_calibrate(self, debug):
         """<Brief Description>
         <Detailed Description>
         Args:
@@ -57,7 +96,9 @@ class odrive_exo():
         '''
         Based off https://docs.odriverobotics.com/
         '''
-        self.reset()
+        print("Reseting Configuration - Recalibration Required")
+        self.odrv.erase_configuration()
+        self.reboot_odrive()
 
         print("Calibration Phase 1")
         # These 3 values are the ones we had to change from default, they will
@@ -112,7 +153,7 @@ class odrive_exo():
 
         if self.axis0.encoder.config.pre_calibrated:
             self.odrv.save_configuration()
-            self.reboot()
+            self.reboot_odrive()
             print("Done full calibration sequence - successful")
         else:
             print("Done full calibration sequence - not successful")
@@ -136,31 +177,13 @@ class odrive_exo():
         self.axis0.motor.config.resistance_calib_max_voltage = 3
         self.axis0.controller.config.vel_limit = 20000
         self.odrv.save_configuration()
-        self.reboot()
+        self.reboot_odrive()
         print("\nIndex Values Before: " + str(self.axis0.encoder.is_ready) + " " + str(self.axis0.encoder.index_found))
         print("Delaying 10 seconds for manual calibration movement")
         time.sleep(10)
         print("\nIndex Values After: " + str(self.axis0.encoder.is_ready) + " " + str(self.axis0.encoder.index_found))
 
-
-    def reset(self):
-        """<Brief Description>Erase current configuration settings
-
-        Requires recalibration, this is called at start of every calibration
-        sequence.
-
-        Args: None
-
-        Returns: None
-
-        Raises: None
-
-        """
-        print("Reseting Configuration - Recalibration Required")
-        self.odrv.erase_configuration()
-        self.reboot()
-
-    def reboot(self):
+    def reboot_odrive(self):
         """<Brief Description>
 
         <Detailed Description>
@@ -215,30 +238,9 @@ class odrive_exo():
         """
         TODO
         """
-        print(self.axis0.motor.config)
-
-    @property
-    def ARM_LOWER_LIMIT(self):
-        """Get the lower position limit for the arm (counts)"""
-        return self.ARM_LOWER_LIMIT
-
-    @property
-    def ARM_UPPER_LIMIT(self):
-        """Get the upper position limit for the arm (counts)"""
-        return self.ARM_UPPER_LIMIT
+        print(self.axis0.encoder.config)
 
     def set_global_current_limit(self, new_current_lim):
-        """<Brief Description>
-
-        <Detailed Description>
-
-        Args:
-
-        Returns:
-
-        Raises:
-
-        """
         self.axis0.motor.config.current_lim = new_current_lim
         print("Set global current limit = " + str(new_current_lim))
 
@@ -257,33 +259,14 @@ class odrive_exo():
         self.axis0.controller.config.vel_limit = new_velocity_lim
         print("Set global velocity limit = " + str(new_velocity_lim))
 
-
     def get_global_current_limit(self):
-        """<Brief Description>
-
-        <Detailed Description>
-
-        Args:
-
-        Returns:
-
-        Raises:
-
-        """
         return self.axis0.motor.config.current_lim
 
+    def set_global_velocity_limit(self, new_velocity_lim):
+        print("Setting global velocity limit to " + str(new_velocity,_lim))
+        self.axis0.controller.config.vel_limit = new_velocity_lim
+
     def get_global_velocity_limit(self):
-        """<Brief Description>
-
-        <Detailed Description>
-
-        Args:
-
-        Returns:
-
-        Raises:
-
-        """
         return self.axis0.controller.config.vel_limit
 
     def set_control_mode(self, axis, mode):
@@ -326,10 +309,6 @@ class odrive_exo():
         Args:
             verbose: True to display position each time
 
-        Returns:
-
-        Raises:
-
         """
         self.set_requested_state(self.axis0, AXIS_STATE_CLOSED_LOOP_CONTROL)
         self.axis0.controller.config.control_mode = CTRL_MODE_POSITION_CONTROL
@@ -343,18 +322,6 @@ class odrive_exo():
             time.sleep(0.01)
 
     def set_position(self, position):
-        """Set the position of motor, position is in encoder units.
-
-        Detailed Description
-
-        Args:
-
-        Returns:
-            None
-
-        Raises:
-            None
-        """
         odrv.set_requested_state(self.axis0, AXIS_STATE_CLOSED_LOOP_CONTROL)
         self.axis0.controller.config.control_mode = CTRL_MODE_POSITION_CONTROL
         self.axis0.controller.pos_setpoint = position
@@ -386,20 +353,8 @@ class odrive_exo():
         Raises:
 
         """
-        pass
 
     def set_velocity(self, velocity):
-        """Non-ramped velocity control
-
-        UNTESTED
-
-        Args:
-
-        Returns:
-
-        Raises:
-
-        """
         self.set_requested_state(self.axis0, AXIS_STATE_CLOSED_LOOP_CONTROL)
         self.axis0.controller.config.control_mode = CTRL_MODE_VELOCITY_CONTROL
         # Set the velocity [counts/s]
@@ -407,17 +362,6 @@ class odrive_exo():
         print("Set Velocity to: " + velocity + "counts/s (Non-Ramped)")
 
     def set_velocity_ramped(self, velocity, ramp_rate):
-        """Ramped velocity control i.e. accelerate to velocity at ramp rate
-
-        UNTESTED
-
-        Args:
-
-        Returns:
-
-        Raises:
-
-        """
         self.axis0.controller.config.control_mode = CTRL_MODE_VELOCITY_CONTROL
         # Set the velocity ramp rate (acceleration) [counts/s^2]
         self.axis0.controller.config.vel_ramp_rate = ramp_rate
@@ -428,17 +372,6 @@ class odrive_exo():
         print("Set Velocity to: " + velocity + " counts/s , Ramp-Rate: " + ramp_rate + " counts/s^2")
 
     def set_current_control(self, current):
-        """UNTESTED<Brief Description>
-
-        <Detailed Description>
-
-        Args:
-
-        Returns:
-
-        Raises:
-
-        """
         self.set_requested_state(self.axis0, AXIS_STATE_CLOSED_LOOP_CONTROL)
         self.axis0.controller.config.control_mode = CTRL_MODE_CURRENT_CONTROL
         # Set the current, proportional to torque
@@ -452,45 +385,12 @@ class odrive_exo():
             print("Error: Current value of outside of range")
 
     def set_voltage_control(self, current):
-        """UNTESTED<Brief Description>
-
-        <Detailed Description>
-
-        Args:
-
-        Returns:
-
-        Raises:
-
-        """
         self.axis0.controller.config.control_mode = CTRL_MODE_VOLTAGE_CONTROL
 
     def get_position(self):
-        """<Brief Description>
-
-        <Detailed Description>
-
-        Args:
-
-        Returns:
-
-        Raises:
-
-        """
         return self.axis0.encoder.pos_estimate
 
     def get_velocity(self):
-        """<Brief Description>
-
-        <Detailed Description>
-
-        Args:
-
-        Returns:
-
-        Raises:
-
-        """
         return self.axis0.encoder.vel_estimate
 
     ################################ ROS - Main ################################
@@ -500,18 +400,20 @@ class odrive_exo():
             odrv.set_position(int(cmd))
         else:
             print(odrv.get_position())
+    def set_motor_position(self, cmd):
+        odrv.set_position(int(cmd))
         self.TERMpub.publish("cp" + str(odrv.get_position()))
         self.TERMpub.publish("tp" + str(odrv.axis0.controller.pos_setpoint))
 
 
-    def check_calibration(self, arg):
+    def start_calibration(self, arg):
         # TODO: only do full calibration if not pre_calibrated
         if (arg == "f"):
-            odrv.calibrate(True)
+            odrv.auto_calibrate(True)
         if (arg == "u"):
             odrv.user_calibrate()
 
-    def check_set_limit(self, cmd):
+    def set_limit(self, cmd):
         cmd_code = cmd[0]
         cmd_data = cmd[1:]
         if (cmd_code == "v"):
@@ -528,7 +430,7 @@ class odrive_exo():
             rospy.loginfo("Invalid input")
             return -1
 
-    def check_motor_config(self, cmd):
+    def print_motor_config(self, cmd):
         if (cmd == "m"):
             odrv.dump_motor_config()
             return 0
@@ -539,7 +441,7 @@ class odrive_exo():
             rospy.loginfo("Invalid input")
             return -1
 
-    def check_error(self, cmd):
+    def print_error(self, cmd):
         odrv.dump_errors()
         return 0
 
