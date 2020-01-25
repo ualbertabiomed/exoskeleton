@@ -255,7 +255,7 @@ class odrive_exo():
 
         """
         self.axis0.controller.config.vel_limit = new_velocity_lim
-        print("Set global velocity limit = " + str(new_velocity,_lim))
+        print("Set global velocity limit = " + str(new_velocity_lim))
 
 
     def get_global_current_limit(self):
@@ -331,7 +331,7 @@ class odrive_exo():
         Raises:
 
         """
-        self.requested_state(self.axis0, AXIS_STATE_CLOSED_LOOP_CONTROL)
+        self.set_requested_state(self.axis0, AXIS_STATE_CLOSED_LOOP_CONTROL)
         self.axis0.controller.config.control_mode = CTRL_MODE_POSITION_CONTROL
         print("Executing sinusoidal test move...")
         t0 = time.monotonic()
@@ -356,11 +356,11 @@ class odrive_exo():
             None
         """
         odrv.set_requested_state(self.axis0, AXIS_STATE_CLOSED_LOOP_CONTROL)
-        odrv.axis0.controller.config.control_mode = CTRL_MODE_POSITION_CONTROL
-        odrv.axis0.controller.pos_setpoint = position
+        self.axis0.controller.config.control_mode = CTRL_MODE_POSITION_CONTROL
+        self.axis0.controller.pos_setpoint = position
         print("Set position to: " + str(position) + " encoder units")
 
-    def set_position_trajectory_control(target_vel, accel_limit, decel_limit):
+    def set_position_trajectory_control(self, target_vel, accel_limit, decel_limit):
         """TODO
 
         https://docs.odriverobotics.com/#trajectory-control
@@ -374,7 +374,7 @@ class odrive_exo():
         """
         pass
 
-    def set_position_circular_control():
+    def set_position_circular_control(self):
         """TODO
 
         See https://docs.odriverobotics.com/#trajectory-control
@@ -498,6 +498,8 @@ class odrive_exo():
     def check_position(self, cmd):
         if cmd != '':
             odrv.set_position(int(cmd))
+        else:
+            print(odrv.get_position())
         self.TERMpub.publish("cp" + str(odrv.get_position()))
         self.TERMpub.publish("tp" + str(odrv.axis0.controller.pos_setpoint))
 
@@ -569,10 +571,20 @@ class odrive_exo():
         pid_val = data.data
         rospy.login(pid_val)
 
+    # TODO: til PID is integrated this is not needed
+    #def PID_callback(self, data):
+        #pid_val = data.data
+        #rospy.loginfo(pid_val)
+
+    def imu_callback(self, data):
+        imu_val = data.data
+        rospy.loginfo(imu_val)
+
     def listener(self):
         rospy.init_node("odriv_node", anonymous=True)
         rospy.Subscriber("term_channel", String, odrv.term_callback)
         self.TERMpub = rospy.Publisher("odrive_info", String, queue_size = 10)
+        rospy.Subscriber("chatter", Float32, odrv.imu_callback)
         # TODO: til PID is integrated this is not needed
         # rospy.Subscriber("pid_channel", Float32, odrive.pid_callback)
         self.PIDpub = rospy.Publisher("odrive_channel", Float32, queue_size=10) # not sure what queue_size should be
@@ -580,7 +592,7 @@ class odrive_exo():
 
         self.angle_position_val = convert_counts_to_angle(self.get_position())
 
-        self.PIDpub.publish(angle_position_val)
+        # self.PIDpub.publish(angle_position_val)
 
         rospy.spin()
 
