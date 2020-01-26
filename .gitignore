@@ -49,3 +49,5 @@ bin/
 
 # Autodocs
 docs/
+src/keyring.deb
+.pyc
