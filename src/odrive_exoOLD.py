@@ -9,31 +9,49 @@ import fibre
 import rospy
 from std_msgs.msg import String, Float32
 
-class ODrive_ROS:
-    """
-    ODrive ROS Node
-    """
+LIVEPLOTTER_POSITION_ESTIMATE = 0
+LIVEPLOTTER_VELOCITY_ESTIMATE = 1
+LIVEPLOTTER_TORQUE_ESTIMATE = 2
+LIVEPLOTTER_CURRENT_COMMANDED = 3
+LIVEPLOTTER_CURRENT_MEASURED = 4
 
-    # Declare variables
-    odrv_ctrl = None
-    TERMpub = None
-    TERMsub = None
+class odrive_exo:
+    """Implementation of exoskeleton "joint" using odrive
+
+    Atributes:
+        my_drive: odrive object, see https://docs.odriverobotics.com/commands
+        for commands/documentation.
+    """
+    encoder_cpr = 8192
+    encoder_kv = 192
+
+    last_speed = 0 # TODO: Do we want these
+    last_pos = 0
+
 
     def __init__(self):
+        """
+        Make launch files so that we can say which axis is to use, if odrive
+        should be calibrated on startup, ...
+        """
+        print("Finding an odrive...")
+        self.odrv = odrive.find_any()
+        print("Found an odrive...")
 
-        # Initialize ROS Node
-        rospy.init_node("odrive_node", anonymous=True)
+        if self.odrv:
+            self.axis0 = self.odrv.axis0
+            self.axis1 = self.odrv.axis1
+            self.encoder_cpr = self.axis0.encoder.config.cpr
+            # TODO: Determine and set these
+            #self.ARM_LOWER_LIMIT = 0
+            #self.ARM_UPPER_LIMIT = 8192
 
-        # Initialize ODrive Control Object
-        self.odrv_ctrl = ODrive_ctrl()
-
-        # Initialize Publishers and Subscribers
-        self.TERMsub = rospy.Subscriber("term_channel", String, self.term_callback)
-        self.IMUsub = rospy.Subscriber("imu_input", Float32, self.imu_callback)
         self.TERMpub = rospy.Publisher("odrive_info", String, queue_size = 10)
-
-        # Try to connect to ODrive
-        self.odrv_ctrl.connect()
+        # TODO: til PID is integrated this is not needed
+        # rospy.Subscriber("pid_channel", Float32, odrive.pid_callback)
+        self.PIDpub = rospy.Publisher("odrive_channel", Float32, queue_size=10) # not sure what queue_size should be
+        rospy.Subscriber("term_channel", String, self.term_callback)
+        rospy.Subscriber("imu_input", Float32, self.imu_callback)
 
     def term_callback(self, data):
         cmd_data = data.data.strip()
@@ -59,117 +77,20 @@ class ODrive_ROS:
         else:
             rospy.loginfo("Undefined error")
 
+    def PID_callback(self, data):
+        pid_val = data.data
+        rospy.login(pid_val)
+
     def imu_callback(self, data):
         imu_val = data.data
         rospy.loginfo(imu_val)
 
-    def user_loop(self):
-        """
-        For user control via menu
-        """
-        while (True):
-            key = raw_input("\n1. Calibrate\n2. Position Control Mode\n3. Velocity Control Mode\n4. Voltage Control Mode\n5. Set Limits\n6. Dump Configs + Errors\nChoose a command (Press a number): ")
-
-            if key == '1':
-            # Calibration
-                key = raw_input("\n1. Auto (Don't do this while motor is connect to arm)\n2. User\nChoose a calibration type: ")
-                if key == '1':
-                    # Don't do this while connected to arm
-                    #self.odrv_ctrl.auto_calibrate(True)
-                    pass
-                if key == '2':
-                    self.odrv_ctrl.user_calibrate()
-            elif key == '2':
-            # Position Control Mode
-                key = ''
-                while key != "q":
-                    print("Current Position [counts]: " + str(self.odrv_ctrl.get_position()))
-                    key = raw_input("Enter a position or press q to quit: ")
-                    if key != 'q': self.odrv_ctrl.set_position(int(key))
-                    # TODO: Possibly add a delay here to give time for motor to spin so position is read correctly on next loop
-
-            elif key == '3':
-            # Veclocity Control Mode
-                key = ''
-                while key != 'q':
-                    print("Current Position [counts]: " + str(self.odrv_ctrl.get_position()))
-                    print("Current Velocity [counts/s]: " + str(self.odrv_ctrl.get_velocity()))
-                    key = raw_input("Enter a velocity or press q to quit: ")
-                    if key != 'q': self.odrv_ctrl.set_velocity(int(key))
-                    # TODO: Possibly add a delay here to give time for motor to spin so position is read correctly on next loop
-
-            elif key == '4':
-            # Voltage Control Mode
-                self.odrv_ctrl.set_voltage()
-
-            elif key == '5':
-            # Set Limits
-                print("Current Limit: " + str(self.odrv_ctrl.get_current_limit()) + "\nVelocity Limit: " + str(self.odrv_ctrl.get_velocity_limit())),
-                key = raw_input("\n1. Current Limit\n2. Velocity Limit\n3. Abort\nWhich limit would you like to change: ")
-                if key == '1':
-                    # Current
-                    key = raw_input("Enter a new Current Limit: ")
-                    self.odrv_ctrl.set_current_limit(int(key))
-                    print("New Current Limit: " + str(self.odrv_ctrl.get_current_limit()))
-                elif key == '2':
-                    # Velocity
-                    key = raw_input("Enter a new Velocity Limit: ")
-                    self.odrv_ctrl.set_velocity_limit(int(key))
-                    print("New Velocity Limit: " + str(self.odrv_ctrl.get_velocity_limit()))
-                else:
-                # Aborts with any other key
-                    pass
-
-
-            elif key == '6':
-            # Dump Configs
-                self.odrv_ctrl.dump_motor_config()
-                self.odrv_ctrl.dump_encoder_config()
-                self.odrv_ctrl.dump_errors()
-
-    def exo_loop(self):
-        """
-        For use in full system
-        """
-        pass
-
-class ODrive_ctrl:
-    """
-    ODrive control commands
-    """
-
-    # Declare ODrive Related Variables
-    odrv = None
-    axis0 = None # Motor 0
-    axis1 = None # Motor 1
-    encoder_cpr = 8192
-    encoder_kv = 192
-
-    # Connection
-
-    def connect(self):
-        print("Finding an ODrive...")
-        self.odrv = odrive.find_any()
-        if self.odrv:
-            self.axis0 = self.odrv.axis0
-            self.axis1 = self.odrv.axis1
-            print("Found an ODrive!")
-        else:
-            print("Couldn't find an ODrive...")
-
-    def reboot_odrive(self):
-        print("Rebooting and Reconnecting")
-        try:
-            self.odrv.reboot()
-        except fibre.ChannelBrokenException:
-            print("Expected connection loss due to reboot")
-        self.connect()
-
-    # Calibration
-
     def auto_calibrate(self, debug):
-        """
-        Auto Calibration - should only be needed once per life of motor.
+        """<Brief Description>
+        <Detailed Description>
+        Args:
+        Returns:
+        Raises:
         """
         ##################Calibration Phase 1 - Set Variables###################
         '''
@@ -255,7 +176,7 @@ class ODrive_ctrl:
         self.axis0.motor.config.calibration_current = 10
         self.axis0.motor.config.current_lim = 68 # From above link
         self.axis0.motor.config.resistance_calib_max_voltage = 3
-        self.axis0.controller.config.vel_limit = 50000 # counts/s
+        self.axis0.controller.config.vel_limit = 20000
         self.odrv.save_configuration()
         self.reboot_odrive()
         print("\nIndex Values Before: " + str(self.axis0.encoder.is_ready) + " " + str(self.axis0.encoder.index_found))
@@ -263,21 +184,61 @@ class ODrive_ctrl:
         time.sleep(10)
         print("\nIndex Values After: " + str(self.axis0.encoder.is_ready) + " " + str(self.axis0.encoder.index_found))
 
-    # Getters
+    def reboot_odrive(self):
+        print("Rebooting and Reconnecting")
+        try:
+            self.odrv.reboot()
+        except fibre.ChannelBrokenException:
+            print("Expected connection loss due to reboot")
+        self.odrv = odrive.find_any()
+        if self.odrv:
+            self.axis0 = self.odrv.axis0
+            self.axis1 = self.odrv.axis1
+            print("Reconnection Successful")
 
-    def get_position(self):
-        return self.axis0.encoder.pos_estimate
+    def dump_errors(self, clear=False):
+        odrive.utils.dump_errors(self.odrv, clear)
 
-    def get_velocity(self):
-        return self.axis0.encoder.vel_estimate
+    def liveplotter(self, plot):
+        """
+        Doesn't appear to work with ROS for Python 2.
+        """
+
+        if plot == 0:
+            odrive.utils.start_liveplotter(self.axis0.encoder.pos_estimate)
+
+        if plot == 1:
+            odrive.utils.start_liveplotter(self.axis0.encoder.vel_estimate)
+
+        if plot == 2:
+            odrive.utils.start_liveplotter(self.axis0.motor.current_control.Iq_setpoint)
+
+        if plot == 3:
+            odrive.utils.start_liveplotter(self.axis0.motor.current_control.Iq_measured)
+
+        if plot == 4:
+            # INCOMPLETE: Figure out the KV for our motor
+            odrive.utils.start_liveplotter(self.axis0.motor.current_control.Iq_measured*8.27/self.encoder_kv)
+
+    def dump_motor_config(self):
+        print(self.axis0.motor.config)
+
+    def dump_encoder_config(self):
+        print(self.axis0.encoder.config)
+
+    def set_current_limit(self, new_current_lim):
+        self.axis0.motor.config.current_lim = new_current_lim
+        print("Set global current limit = " + str(new_current_lim))
+
+    def set_velocity_limit(self, new_velocity_lim):
+        self.axis0.controller.config.vel_limit = new_velocity_lim
+        print("Set global velocity limit = " + str(new_velocity_lim))
 
     def get_current_limit(self):
         return self.axis0.motor.config.current_lim
 
     def get_velocity_limit(self):
         return self.axis0.controller.config.vel_limit
-
-    # Setters
 
     def set_control_mode(self, axis, mode):
         """
@@ -311,54 +272,130 @@ class ODrive_ctrl:
         else:
             print("Error: Invalid requested state")
 
-    def set_position(self, position):
+    def sinusoidal_test_move(self, verbose):
+        """Do a sinusoidal test movement for 10 seconds
+
+        See https://github.com/madcowswe/ODrive/blob/master/tools/odrive_demo.py
+
+        Args:
+            verbose: True to display position each time
+
+        """
         self.set_requested_state(self.axis0, AXIS_STATE_CLOSED_LOOP_CONTROL)
         self.axis0.controller.config.control_mode = CTRL_MODE_POSITION_CONTROL
-        self.axis0.controller.pos_setpoint = position # [counts]
+        print("Executing sinusoidal test move...")
+        t0 = time.monotonic()
+        while (time.monotonic() - t0) < 10:
+            setpoint = 10000.0 * math.sin((time.monotonic() - t0)*2)
+            if verbose:
+                print("goto " + str(int(setpoint)))
+            self.axis0.controller.pos_setpoint = setpoint
+            time.sleep(0.01)
+
+    def set_position(self, position):
+        odrv.set_requested_state(self.axis0, AXIS_STATE_CLOSED_LOOP_CONTROL)
+        self.axis0.controller.config.control_mode = CTRL_MODE_POSITION_CONTROL
+        self.axis0.controller.pos_setpoint = position
         print("Set position to: " + str(position) + " encoder units")
 
     def set_velocity(self, velocity):
         self.set_requested_state(self.axis0, AXIS_STATE_CLOSED_LOOP_CONTROL)
         self.axis0.controller.config.control_mode = CTRL_MODE_VELOCITY_CONTROL
-        self.axis0.controller.vel_setpoint = velocity # [counts/sec]
-        print("Set Velocity to: " + str(velocity) + "counts/s (Non-Ramped)")
+        # Set the velocity [counts/s]
+        self.axis0.controller.vel_setpoint = velocity
+        print("Set Velocity to: " + velocity + "counts/s (Non-Ramped)")
 
     def set_current(self, current):
+        self.set_requested_state(self.axis0, AXIS_STATE_CLOSED_LOOP_CONTROL)
+        self.axis0.controller.config.control_mode = CTRL_MODE_CURRENT_CONTROL
         # Set the current, proportional to torque
         # NOTE: There is no velocity limiting in current control mode, make
         # sure to not overrev the motor or exceed max speed for encode.
-        if (current >= 0 and current <= 68):
-            self.set_requested_state(self.axis0, AXIS_STATE_CLOSED_LOOP_CONTROL)
-            self.axis0.controller.config.control_mode = CTRL_MODE_CURRENT_CONTROL
+        if (current >= 0 and current <= 23):
+            print("Setting Current")
             self.axis0.controller.current_setpoint = current
         else:
-            print("Current outside motor limits")
+            print("Error: Current value of outside of range")
 
-    def set_voltage(self):
-        self.set_requested_state(self.axis0, AXIS_STATE_CLOSED_LOOP_CONTROL)
+    def set_voltage(self, current):
         self.axis0.controller.config.control_mode = CTRL_MODE_VOLTAGE_CONTROL
 
-    def set_current_limit(self, new_current_lim):
-        self.axis0.motor.config.current_lim = new_current_lim
-        print("Set global current limit = " + str(new_current_lim))
+    def get_position(self):
+        return self.axis0.encoder.pos_estimate
 
-    def set_velocity_limit(self, new_velocity_lim):
-        self.axis0.controller.config.vel_limit = new_velocity_lim
-        print("Set global velocity limit = " + str(new_velocity_lim))
+    def get_velocity(self):
+        return self.axis0.encoder.vel_estimate
 
-    # Config and Error Dumps
+    ################################ ROS - Main ################################
 
-    def dump_errors(self, clear=False):
-        odrive.utils.dump_errors(self.odrv, clear)
+    def set_motor_position(self, cmd):
+        if cmd != '':
+            odrv.set_position(int(cmd))
+        else:
+            print(odrv.get_position())
+            self.TERMpub.publish("cp" + str(odrv.get_position()))
+            self.TERMpub.publish("tp" + str(odrv.axis0.controller.pos_setpoint))
 
-    def dump_motor_config(self):
-        print(self.axis0.motor.config)
+    def start_calibration(self, arg):
+        # TODO: only do full calibration if not pre_calibrated
+        if (arg == "f"):
+            odrv.auto_calibrate(True)
+        if (arg == "u"):
+            odrv.user_calibrate()
 
-    def dump_encoder_config(self):
-        print(self.axis0.encoder.config)
+    def set_limit(self, cmd):
+        cmd_code = cmd[0]
+        cmd_data = cmd[1:]
+        if (cmd_code == "v"):
+            odrv.set_velocity_limit(int(cmd_data))
+            # TODO: why is this being set twice
+            #rospy.loginfo(odrive.set_velocity_limit(int(cmd_data)))
+            return 0
+        elif (cmd_code == "c"):
+            odrv.set_current_limit(int(cmd_data))
+            # TODO: why is this being set twice
+            #rospy.loginfo(odrive.set_current_limit(int(cmd_data)))
+            return 0
+        else:
+            rospy.loginfo("Invalid input")
+            return -1
+
+    def print_config(self, cmd):
+        if (cmd == "m"):
+            odrv.dump_motor_config()
+            return 0
+        elif (cmd == "e"):
+            odrv.dump_encoder_config()
+            return 0
+        else:
+            rospy.loginfo("Invalid input")
+            return -1
+
+    def print_error(self, cmd):
+        odrv.dump_errors()
+        return 0
+
+    def imu_callback(self, data):
+        imu_val = data.data
+        rospy.loginfo(imu_val)
+
+    def listener(self):
+        rospy.init_node("odriv_node", anonymous=True)
+        rospy.Subscriber("term_channel", String, odrv.term_callback)
+        self.TERMpub = rospy.Publisher("odrive_info", String, queue_size = 10)
+        rospy.Subscriber("chatter", Float32, odrv.imu_callback)
+        # TODO: til PID is integrated this is not needed
+        # rospy.Subscriber("pid_channel", Float32, odrive.pid_callback)
+        self.PIDpub = rospy.Publisher("odrive_channel", Float32, queue_size=10) # not sure what queue_size should be
+        self.rate = rospy.Rate(1) # should be smaller?
+
+        self.angle_position_val = convert_counts_to_angle(self.get_position())
+
+        # self.PIDpub.publish(angle_position_val)
+
+        rospy.spin()
 
 if __name__ == "__main__":
-    odrv_node = ODrive_ROS()
-    while (True):
-        odrv_node.user_loop()
-        rospy.spin()
+
+    odrv = odrive_exo()
+    odrv.listener()
