@@ -123,6 +123,11 @@ class ODrive_ROS:
 
             elif key == '6':
             # Dump Configs
+                key = raw_input("Reset Errors? [y/n]: ")
+                if (key == "y"):
+                    self.odrv_ctrl.dump_errors(True)
+                else:
+                    self.odrv_ctrl.dump_errors()
                 self.odrv_ctrl.dump_motor_config()
                 self.odrv_ctrl.dump_encoder_config()
                 self.odrv_ctrl.dump_errors()
