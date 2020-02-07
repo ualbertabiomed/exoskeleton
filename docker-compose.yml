@@ -1,0 +1,25 @@
+version: "3.3"
+services:
+  uab:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: uab
+    container_name: uab-container
+    tty: true
+    stdin_open: true
+    environment:
+      DISPLAY: $DISPLAY
+      ROS_IP: 127.0.0.1
+      QT_X11_NO_MITSHM: 1
+      DOCKER_HOST_REPO_LOCATION: .
+    volumes:
+      - /tmp/.X11-unix:/tmp/.X11-unix
+      - $XAUTHORITY:/root/.Xauthority
+      - .:/software
+      - .docker-opt-ros-mount:/tmp/docker-opt-ros-mount
+      - .docker-root-ros-include-mount:/tmp/docker-root-ros-include-mount
+    devices:
+       - /dev/dri:/dev/dri
+    network_mode: host
+
