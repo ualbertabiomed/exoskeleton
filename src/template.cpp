@@ -25,6 +25,8 @@ development
 #include <ros.h>
 #include <std_msgs/Float32.h>
 
+#include "flex_sensor.h"
+
 // Initialize pins (may change depending on amount of sensors)
 #define IMU1 A0
 #define IMU2 A1
@@ -73,6 +75,7 @@ float flex_sensor() {
 		Implement code to read data from flex sensors. Calculate the angle
 		using the raw data.
 	*/
+
 }
 
 float fuse(float IMU_data, float flex_data, float FSR_data) {
