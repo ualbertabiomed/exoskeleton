@@ -5,15 +5,15 @@ RUN apt-get update && apt-get install -y tmux \
                                          nano \
                                          python-pip
 
-RUN python2 -m pip install monotonic
-RUN python2 -m pip install scipy \
-                           numpy \
-                           Sphinx \
-                           numpydoc \
-                           nose \
-                           pykalman \
-                           monotonic \
-                           odrive
+RUN python2 -m pip install monotonic \
+    scipy \
+    numpy \
+    Sphinx \
+    numpydoc \
+    nose \
+    pykalman \
+    monotonic \
+    odrive
 
 
 SHELL ["/ros_entrypoint.sh", "bash", "-c"]
