@@ -75,6 +75,12 @@ float flex_sensor() {
 		Implement code to read data from flex sensors. Calculate the angle
 		using the raw data.
 	*/
+	// Instantiate flex_sensor object
+	// flexSensor flexSensorA((float) STRAIGHT_RESISTANCE,(float) BEND_RESISTANCE,(float));
+	// Setups the the serial communication with the the arduino
+	// flexSensor.setup(int PIN);
+	// Outputs the angle into the serial monitor for now (future: need to use ros node)
+	// flexSensor.run();
 
 }
 
