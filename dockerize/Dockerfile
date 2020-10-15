@@ -35,4 +35,4 @@ RUN apt-get update && apt-get install -y \
     libgazebo11-dev
 
 WORKDIR /usr/src/exo
-CMD ["/bin/bash"]
+CMD exec /bin/bash -c "trap : TERM INT; sleep infinity & wait"
