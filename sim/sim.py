@@ -5,29 +5,30 @@ import pybullet as pb
 from env import Environment
 from exoskeleton import ExoSkeleton
 
+CONFIG_PATH = 'config.yaml'
+
 
 class Simulation:
     """
     Class handling the running of the simulation.
     """
-    config_path = 'config.yaml'
-    config = None
-
     def __init__(self):
         """
         Initializes dependencies.
         """
-        self._load_configuration()
-        env = Environment(self.config)
-        exo_skel = ExoSkeleton(self.config)
+        self._config = self._load_configuration()
+        self._env = Environment(self._config)
+        self._exo_skel = ExoSkeleton(self._config)
 
     def _load_configuration(self):
         """
-        Loads the yaml file at config_path into a dict.
+        Loads the yaml file at CONFIG_PATH into a dict.
+
+        :returns: dict containing configuration data in the yaml file at CONFIG_PATH
         """
-        with open(self.config_path) as config_file:
+        with open(CONFIG_PATH) as config_file:
             try:
-                self.config = yaml.safe_load(config_file)
+                return yaml.safe_load(config_file)
             except yaml.YAMLError as e:
                 print('YAMLError: ' + str(e))
                 exit()
