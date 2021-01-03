@@ -1,0 +1,10 @@
+env:
+  headless: false
+  real-time: true
+
+human:
+  start-position: [0, 0, 1]
+  start-orientation: [90, 0, 0] # euler-degree form
+
+exo-skeleton:
+  urdf-path: ''
