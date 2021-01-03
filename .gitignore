@@ -45,6 +45,8 @@ Arduino-Makefile/
 # Folders
 build/
 bin/
+*.idea/
+*__pycache__/
 
 # Autodocs
 docs/
