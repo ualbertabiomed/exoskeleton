@@ -1,10 +1,8 @@
 ## Running ROS-Gazebo Docker
 1. Navigate to the exoskeleton/dockerize directory
     - `cd PATH_TO_DIR`
-2. Build the image and run the container using:
+2. Build the image and run the simulation using:
     - `make`
-3. Enter the container using:
-    - `make enter`
 
 ## Additional Commands
 To show all current images and containers:

@@ -1,14 +1,13 @@
-all: build_image run_container
+default: create run
 
-build_image:
+create:
 	docker build -t exosim_image .
 
-run_container:
+run:
 	chmod +x run_container.sh
 	./run_container.sh
-
-enter:
-	docker exec -it exosim /bin/bash
+	echo "removing exosim container..."
+	docker rm exosim
 
 show:
 	docker images
