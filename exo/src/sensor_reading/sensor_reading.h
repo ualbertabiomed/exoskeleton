@@ -20,7 +20,7 @@ class SensorGroup {
       }
       bool verifyConnection() {
         // TODO - perform some action to verify that the pins are properly connected and transmitting
-        return false;
+        return true;
       }
   };
   Sensor *sensors;
