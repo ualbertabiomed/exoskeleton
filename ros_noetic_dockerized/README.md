@@ -33,3 +33,11 @@ To list docker images you have installed run:
 To list all docker containers run:
 
 `docker ps -a`
+
+## Verify Successful Install
+Follow the steps below to verify that the dockerfile has successfully been installed and is capable of opening a GUI:
+
+1. Run `roscore &`
+2. Run `rosrun turtlesim turtlesim_node` and a window should open displaying a turtle against a blue screen
+
+See [here](http://wiki.ros.org/ROS/Tutorials/UnderstandingNodes) for more info
