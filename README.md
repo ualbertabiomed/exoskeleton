@@ -1,5 +1,11 @@
 # Exoskeleton Project
 
+## Project Summary
+
+To design an upper body exoskeleton which would reduce the chance of repetitive strain injury and provide feedback on the users's posture.
+
+Check out our [website](http://www.uabiomed.ca/) for more info or to get involved!
+
 ## Directories
 
 ### arduino 
