@@ -1,8 +1,20 @@
 # Exoskeleton Project
 
-## Getting started
+## Directories
 
+### arduino 
 
+Arduino program to gather FSR, Flex, and IMU data
+
+### controller
+
+Raspberry Pi 4 code to process data and send commands
+
+### dockerize
+
+### ros_noetic_dockerized
+
+### sim
 
 <!-- # Exoskeleton Project
 To design an upper body exoskeleton which would reduce the chance of repetitive strain injury and provide feedback on the users's posture.
