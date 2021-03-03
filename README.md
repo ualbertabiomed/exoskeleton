@@ -1,4 +1,10 @@
 # Exoskeleton Project
+
+## Getting started
+
+
+
+<!-- # Exoskeleton Project
 To design an upper body exoskeleton which would reduce the chance of repetitive strain injury and provide feedback on the users's posture.
 
 ## Documentation
@@ -115,7 +121,7 @@ git clone https://github.com/ualbertabiomed/exoskeleton.git
 - Sudo privileges
 
 
-<!-- **1. Install Arduino IDE**
+**1. Install Arduino IDE**
 - [Install](https://www.arduino.cc/en/main/software)
       - Choose Linux (32bit or 64bit depending on your computer)
 - Installation Guide for Linux [here](https://www.arduino.cc/en/Guide/Linux)
@@ -138,7 +144,7 @@ echo 'export ARDMK_DIR=/usr/share/arduino' >> ~/.bashrc
 echo 'export AVR_TOOLS_DIR=/usr/include' >> ~/.bashrc
 echo 'export BOARD_TAG=mega2560' >> ~/.bashrc
 ```
-- Uncomment only the Linux section -->
+- Uncomment only the Linux section
 
 **1. Clone exoskeleton repo**
 ```
@@ -170,4 +176,4 @@ Hat tip to anyone whose code was used, inspiration, references, etc.
 The legacy code folder was removed as of commit
 [a36a24df2f4bcaecfa03a197b8b9ec66118a99ba](https://github.com/ualbertabiomed/exoskeleton/commit/a36a24df2f4bcaecfa03a197b8b9ec66118a99ba)
 
-
+ -->

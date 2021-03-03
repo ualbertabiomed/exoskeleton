@@ -140,7 +140,7 @@ class ODrive_ROS:
 
 class ODrive_ctrl:
     """
-    ODrive control commands
+    ODrive control commands - This class should get moved to the "include" folder
     """
 
     # Declare ODrive Related Variables

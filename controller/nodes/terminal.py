@@ -3,6 +3,9 @@ import rospy
 from std_msgs.msg import Int32, String
 
 class terminal():
+    """
+    Node to send the system commands from terminal on controller
+    """
 
     def __init__(self):
         self.cmd_string = "cmds:\np <position>\nconfigs\nlimit <vel/cur> <val>\nerrors\ncalibration\n"
