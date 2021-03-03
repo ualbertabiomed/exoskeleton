@@ -1,4 +1,4 @@
-# Exoskeleton Project
+# *ALEX* - The *AL*berta *EX*oskeleton
 
 ## Project Summary
 
@@ -8,19 +8,21 @@ Check out our [website](http://www.uabiomed.ca/) for more info or to get involve
 
 ## Directories
 
-### arduino 
+More detailed instructions can be found within each directory.
+
+### [arduino](arduino)
 
 Arduino program to gather FSR, Flex, and IMU data
 
-### controller
+### [controller](controller)
 
 Raspberry Pi 4 code to process data and send commands
 
-### dockerize
+### [dockerize](dockerize)
 
-### ros_noetic_dockerized
+### [ros_noetic_dockerized](ros_noetic_dockerized)
 
-### sim
+### [sim](sim)
 
 <!-- # Exoskeleton Project
 To design an upper body exoskeleton which would reduce the chance of repetitive strain injury and provide feedback on the users's posture.
