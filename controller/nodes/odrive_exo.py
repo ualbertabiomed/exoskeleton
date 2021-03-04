@@ -29,7 +29,6 @@ class ODrive_ROS:
 
         # Initialize Publishers and Subscribers
         self.TERMsub = rospy.Subscriber("term_channel", String, self.term_callback)
-        self.IMUsub = rospy.Subscriber("imu_input", Float32, self.imu_callback)
         self.TERMpub = rospy.Publisher("odrive_info", String, queue_size = 10)
 
         # Try to connect to ODrive
@@ -58,10 +57,6 @@ class ODrive_ROS:
             response = self.print_error(args)
         else:
             rospy.loginfo("Undefined error")
-
-    def imu_callback(self, data):
-        imu_val = data.data
-        rospy.loginfo(imu_val)
 
     def user_loop(self):
         """

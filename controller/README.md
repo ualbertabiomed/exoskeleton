@@ -22,3 +22,7 @@ The controller directory is a catkin package, meant to be uploaded on the contro
    1. Generating a new SSH key and adding it to the agent
    2. Adding a new SSH key to your github account
    3. Testing your SSH connection
+
+## Style
+
+Try to follow [this](http://wiki.ros.org/PyStyleGuide) style guide 
