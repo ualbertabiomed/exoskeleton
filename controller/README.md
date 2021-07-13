@@ -7,9 +7,11 @@ The controller directory is a catkin package, meant to be uploaded on the contro
 ## Upload Instructions
 
 ### Instructions for setting up a new Pi
+
+#### Method 1: Docker (WIP)
 1. Install Ubuntu 20.X
 2. Create uab user with password “uabiomed”
-3. Name device “piX” where X is whatever number Pi this is
+3. Name device “uab-piX” where X is whatever number Pi this is
 4. Do the following in order:
    1. “sudo apt update”
    2. “sudo apt upgrade”
@@ -22,6 +24,16 @@ The controller directory is a catkin package, meant to be uploaded on the contro
    1. Generating a new SSH key and adding it to the agent
    2. Adding a new SSH key to your github account
    3. Testing your SSH connection
+
+#### Method 2: Native
+1. Install Ubuntu 20.X
+2. Create uab user with password "uabiomed"
+3. Name device "uab-piX" where X is whatever number Pi this is
+4. Setup github SSH key (See step 5 above)
+5. Pull exoskeleton repo
+6. Install ROS as detailed [here](http://wiki.ros.org/noetic/Installation/Ubuntu)
+7. Install motor dependencies, what these are is tbd...
+8. Run launch file
 
 ## Style
 
